@@ -11,7 +11,7 @@ include(FetchContent)
 FetchContent_Declare(
         imgui
         GIT_REPOSITORY https://github.com/ocornut/imgui.git
-        GIT_TAG v1.92.4
+        GIT_TAG v1.92.4-docking
 )
 #add imgui library files and backends
 FetchContent_MakeAvailable(imgui)
@@ -36,10 +36,14 @@ target_link_libraries(imgui PUBLIC
         OpenGL::GL
 )
 
-
 add_executable(${PROJECT_NAME}
-        main.cpp
+        src/main.cpp
+        src/Part.cpp
+        src/Machine.cpp
+        src/Operation.cpp
+        src/Job.cpp
 )
+target_include_directories(${PROJECT_NAME} PRIVATE include)
 #now link everything with main project
 target_link_libraries(${PROJECT_NAME} PRIVATE
         imgui
