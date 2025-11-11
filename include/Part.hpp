@@ -2,13 +2,28 @@
 // Created by fjasis on 11/6/25.
 //
 
-#ifndef OPTIPRO_CNC_PART_HPP
-#define OPTIPRO_CNC_PART_HPP
+#pragma once
 
+#include <memory>
+#include <string>
+#include <vector>
+#include "types.hpp"
+
+
+class Operation;
 
 class Part {
+public:
+    ~Part();
+
+
     //TODO DEFINE CLASS STRUCTURE AND ITS BEHAVIOR
+private:
+    std::string PartId;
+    std::vector<std::unique_ptr<Operation>> operations_;
+    SizeXYZ partSize; //in mm
+    uint32_t baseMachineTime;
+
 };
 
 
-#endif //OPTIPRO_CNC_PART_HPP

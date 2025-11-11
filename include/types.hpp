@@ -46,3 +46,7 @@ struct Tool {
     uint16_t currentToolLife;
     int toolId;
 };
+
+struct SizeXYZ {
+    float X,Y,Z;
+};
