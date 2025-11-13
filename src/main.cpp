@@ -2,13 +2,17 @@
 #include <ostream>
 #include <SDL2/SDL.h>
 #include <SDL_opengl.h>
+
+#include "Engine.hpp"
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_opengl3.h"
 #include "types.hpp"
 int main(int argc, char* argv[]) {
 
-    std::map <uint16_t, Tool> tools;
+    Engine engine;
+    StateSnapshot latestState;
+    engine.start();
     // Initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         return -1;
@@ -79,6 +83,10 @@ int main(int argc, char* argv[]) {
                 done = true;
         }
 
+        while (auto snap = engine.pollUpdate()) {
+            latestState = std::move(*snap);
+        }
+
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame();
@@ -96,6 +104,7 @@ int main(int argc, char* argv[]) {
             }
             ImGui::SameLine();
             ImGui::Text("counter = %d", counter);
+            ImGui::Text("snapshot counter = %d", latestState.productionState.count);
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 
             ImGui::BulletText(toString(MachineType::VMC_4AXIS).data());
@@ -111,7 +120,7 @@ int main(int argc, char* argv[]) {
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         SDL_GL_SwapWindow(window);
     }
-
+    engine.stop();
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL2_Shutdown();

@@ -18,7 +18,7 @@ class Engine {
     public:
     Engine()
         : running_{false},
-            tickPeriod_(std::chrono::milliseconds{100}){}
+            tickPeriod_(std::chrono::milliseconds{1000}){}
     ~Engine() {
         stop();
     }
@@ -55,9 +55,10 @@ class Engine {
             //run optimizer at 10hz
             auto now = clock::now();
             if (now >= nextTick) {
+
                 optimizeOnce();
                 publishSnashot();
-                nextTick -= tickPeriod_;
+                nextTick += tickPeriod_;
             } else {
                 //wait before trying to get commands again
                 auto waitTime = std::chrono::duration_cast<std::chrono::milliseconds>(nextTick - now);
@@ -99,10 +100,12 @@ class Engine {
     }
 
     void optimizeOnce() {
-        std::cout << "optimizing!!!!!" << std::endl;
+        state_.count++;
+        //std::cout << "optimizing!!!!!" << std::endl;
     }
 
     void publishSnashot() {
+        std::cout << "publishing" << std::endl;
         StateSnapshot snapshot{state_};
         updates_.push(std::move(snapshot));
     }

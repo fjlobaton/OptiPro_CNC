@@ -74,7 +74,7 @@ struct Job {
 
 struct Part {
     PartID id;
-    std::vector<std::unique_ptr<Operation>> operations;
+    std::vector<OperationID> operations;
     SizeXYZ partSize; //in mm
     uint32_t baseMachineTime;
 };
@@ -112,6 +112,7 @@ struct ProductionState {
     std::map<ToolID,Tool> tools;
     std::map<MachineID,Machine> machines;
     std::map<OperationID, Operation> operations;
+    int count = 0;
 };
 
 struct StateSnapshot {

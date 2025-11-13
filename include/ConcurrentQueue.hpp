@@ -22,7 +22,7 @@ class ConcurrentQueue {
     //blocking pop
     std::optional<T> pop_for(std::chrono::milliseconds timeout) {
         std::unique_lock<std::mutex> lock(mutex_);
-        if (!cv_.wait_for(lock,timeout,  [this] {return ! queue.empty();})) {
+        if (!cv_.wait_for(lock,timeout,  [this] {return ! queue_.empty();})) {
             return std::nullopt;
         }
         T value = std::move(queue_.front());
