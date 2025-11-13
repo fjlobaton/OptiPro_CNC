@@ -7,6 +7,8 @@
 #include "imgui_impl_opengl3.h"
 #include "types.hpp"
 int main(int argc, char* argv[]) {
+
+    std::map <uint16_t, Tool> tools;
     // Initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         return -1;

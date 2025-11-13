@@ -39,10 +39,10 @@ target_link_libraries(imgui PUBLIC
 add_executable(${PROJECT_NAME}
         src/main.cpp
         src/Gui.cpp
-        src/Part.cpp
-        src/Machine.cpp
-        src/Operation.cpp
-        src/Job.cpp
+        include/ConcurrentQueue.hpp
+        include/Commands.hpp
+        include/Engine.hpp
+        include/Optimizer.hpp
 )
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 #now link everything with main project
