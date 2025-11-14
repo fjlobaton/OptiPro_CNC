@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <cstring>
 
-void renderGui()
+void renderGui(StateSnapshot snapshot)
 {
     static int counter = 0;
 
@@ -170,6 +170,10 @@ void renderGui()
         }
         ImGui::EndTabBar();
     }
+    ImGui::End();
+    ImGui::Begin("SnapshotCounter");
+
+    ImGui::Text("snapshot counter: %d", snapshot.productionState.count);
     ImGui::End();
 
 }

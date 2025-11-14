@@ -5,6 +5,6 @@
 #include "types.hpp"
 
 // Renders the main graphical interface using ImGui.
-void renderGui();
+void renderGui(StateSnapshot snapshot);
 
 #endif 

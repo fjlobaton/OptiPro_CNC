@@ -104,6 +104,9 @@ struct Tool {
     uint16_t maxToolLife;
     uint16_t currentToolLife;
     int toolId;
+    bool operator<(const Tool& other) const {
+        return toolId < other.toolId;
+    }
 };
 
 struct ProductionState {

@@ -18,7 +18,8 @@ class Engine {
     public:
     Engine(std::chrono::milliseconds tick_period)
         : running_{false},
-            tickPeriod_(tick_period){}
+            tickPeriod_(tick_period),
+            nextMachineId_(0){}
     ~Engine() {
         stop();
     }
@@ -81,6 +82,10 @@ class Engine {
     void handleCommand(const AddMachineCommand& command) {
 
     }
+    void handleCommand(const GenerateRandomMachinesCommand& command) {
+        generateRandomMachines(command.count);
+    }
+
     void handleCommand(const AddOperationCommand& command) {
 
     }
@@ -108,6 +113,12 @@ class Engine {
         StateSnapshot snapshot{state_};
         updates_.push(std::move(snapshot));
     }
+    void generateRandomMachines(int count) {
+        if (count <=0) return;
+
+        static thread_local std::mt19937 rng{std::random_device{}()};
+
+    }
 
     std::atomic<bool> running_;
     std::thread worker_;
@@ -117,5 +128,9 @@ class Engine {
 
     ConcurrentQueue<CommandVariant> commands_;
     ConcurrentQueue<StateSnapshot> updates_;
+    int nextMachineId_;
+    int nextJobId_;
+    int nextPartId_;
+    int nextOperationId_;
 };
 #endif //OPTIPRO_CNC_OPTIMIZATIONENGINE_HPP

@@ -13,6 +13,9 @@ int main(int argc, char* argv[]) {
 
     Engine engine(std::chrono::milliseconds{100});
     StateSnapshot latestState;
+
+    auto addMachine = AddMachineCommand{};
+    engine.sendCommand(addMachine);
     engine.start();
     // Initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
@@ -98,8 +101,8 @@ int main(int argc, char* argv[]) {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame();
         ImGui::NewFrame();
-
-        renderGui();
+        ImGui::ShowDemoWindow();
+        renderGui(latestState);
 
         // Rendering
         ImGui::Render();

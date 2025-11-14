@@ -7,19 +7,32 @@
 #include <variant>
 
 #include "types.hpp"
-
+//machine related commands
 struct AddMachineCommand {
     Machine machine;
 };
+struct InitMachinesCommand {
+    std::vector<Machine> machines;
+};
+struct GenerateRandomMachinesCommand {
+    int count;
+};
+// tool related commands
 struct AddToolCommand {
     Tool tool;
 };
+
+//operation related commands
 struct AddOperationCommand {
     Operation operation;
 };
+
+//part related commands
 struct AddPartCommand {
     Part part;
 };
+
+//job related commands
 struct AddJobCommand {
     Job job;
 };
@@ -32,6 +45,7 @@ struct StopEgnineCommand {};
 
 using CommandVariant = std::variant<
     AddMachineCommand,
+    GenerateRandomMachinesCommand,
     AddJobCommand,
     AddOperationCommand,
     AddPartCommand,
