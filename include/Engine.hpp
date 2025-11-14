@@ -16,9 +16,9 @@
 
 class Engine {
     public:
-    Engine()
+    Engine(std::chrono::milliseconds tick_period)
         : running_{false},
-            tickPeriod_(std::chrono::milliseconds{1000}){}
+            tickPeriod_(tick_period){}
     ~Engine() {
         stop();
     }
@@ -28,11 +28,10 @@ class Engine {
     }
     void stop() {
         if (!running_) return;
-        sendCommand(StopEgnineCommand{});
+        running_ = false;
         if (worker_.joinable()) {
             worker_.join();
         }
-        running_ = false;
     }
     // function to send command that the ui uses
     void sendCommand(const CommandVariant& command) {
@@ -105,7 +104,7 @@ class Engine {
     }
 
     void publishSnashot() {
-        std::cout << "publishing" << std::endl;
+        //std::cout << "publishing" << std::endl;
         StateSnapshot snapshot{state_};
         updates_.push(std::move(snapshot));
     }

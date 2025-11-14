@@ -4,13 +4,14 @@
 #include <SDL_opengl.h>
 
 #include "Engine.hpp"
+#include "Gui.hpp"
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_opengl3.h"
 #include "types.hpp"
 int main(int argc, char* argv[]) {
 
-    Engine engine;
+    Engine engine(std::chrono::milliseconds{100});
     StateSnapshot latestState;
     engine.start();
     // Initialize SDL
@@ -75,12 +76,18 @@ int main(int argc, char* argv[]) {
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             ImGui_ImplSDL2_ProcessEvent(&event);
-            if (event.type == SDL_QUIT)
+            if (event.type == SDL_QUIT) {
+                engine.stop();
                 done = true;
+            }
+
             if (event.type == SDL_WINDOWEVENT &&
                 event.window.event == SDL_WINDOWEVENT_CLOSE &&
-                event.window.windowID == SDL_GetWindowID(window))
+                event.window.windowID == SDL_GetWindowID(window)) {
                 done = true;
+                engine.stop();
+            }
+
         }
 
         while (auto snap = engine.pollUpdate()) {
@@ -92,25 +99,7 @@ int main(int argc, char* argv[]) {
         ImGui_ImplSDL2_NewFrame();
         ImGui::NewFrame();
 
-        // Your ImGui code here
-        {
-            static int counter = 0;
-
-            ImGui::Begin("Hello, ImGui!");
-            ImGui::Text("This is a sample window");
-            if (ImGui::Button("Click me!")){
-                counter++;
-            ImGui::Text("Button was clicked!");
-            }
-            ImGui::SameLine();
-            ImGui::Text("counter = %d", counter);
-            ImGui::Text("snapshot counter = %d", latestState.productionState.count);
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-
-            ImGui::BulletText(toString(MachineType::VMC_4AXIS).data());
-            ImGui::ShowDemoWindow();
-            ImGui::End();
-        }
+        renderGui();
 
         // Rendering
         ImGui::Render();
