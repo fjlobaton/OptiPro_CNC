@@ -4,6 +4,8 @@
 
 #pragma once
 #include <string_view>
+#include <string>
+#include <cstdint>
 #include <unordered_set>
 
 //X-macro patter to make enum declaration easier to automatically generate tostrings for ui viewing

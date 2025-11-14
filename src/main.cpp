@@ -1,11 +1,17 @@
 #include <iostream>
 #include <ostream>
+#include <vector>
+#include <string>
+#include <cctype>
+#include <cstring>
+#include <algorithm>
 #include <SDL2/SDL.h>
 #include <SDL_opengl.h>
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_opengl3.h"
 #include "types.hpp"
+#include "Gui.hpp"
 int main(int argc, char* argv[]) {
     // Initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
@@ -58,7 +64,7 @@ int main(int argc, char* argv[]) {
     style.ScaleAllSizes(main_scale);        // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)
     style.FontScaleDpi = main_scale;        // Set initial font scale. (using io.ConfigDpiScaleFonts=true makes this unnecessary. We leave both here for documentation purpose)
 
-    io.Fonts->AddFontFromFileTTF("/usr/share/fonts/google-noto/NotoSans-Medium.ttf");
+    //io.Fonts->AddFontFromFileTTF("/usr/share/fonts/google-noto/NotoSans-Medium.ttf");
     // Setup Platform/Renderer backends
     ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
     ImGui_ImplOpenGL3_Init(glsl_version);
@@ -82,24 +88,8 @@ int main(int argc, char* argv[]) {
         ImGui_ImplSDL2_NewFrame();
         ImGui::NewFrame();
 
-        // Your ImGui code here
-        {
-            static int counter = 0;
-
-            ImGui::Begin("Hello, ImGui!");
-            ImGui::Text("This is a sample window");
-            if (ImGui::Button("Click me!")){
-                counter++;
-            ImGui::Text("Button was clicked!");
-            }
-            ImGui::SameLine();
-            ImGui::Text("counter = %d", counter);
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-
-            ImGui::BulletText(toString(MachineType::VMC_4AXIS).data());
-            ImGui::ShowDemoWindow();
-            ImGui::End();
-        }
+        // GUI moved to Gui.cpp
+        renderGui();
 
         // Rendering
         ImGui::Render();

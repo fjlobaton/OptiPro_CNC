@@ -1,0 +1,4 @@
+/mnt/c/Users/pc/OneDrive/Documentos/AyDA/ProyectoClonado/OptiPro_CNC/build/CMakeFiles/imgui.dir
+/mnt/c/Users/pc/OneDrive/Documentos/AyDA/ProyectoClonado/OptiPro_CNC/build/CMakeFiles/OptiPro_CNC.dir
+/mnt/c/Users/pc/OneDrive/Documentos/AyDA/ProyectoClonado/OptiPro_CNC/build/CMakeFiles/edit_cache.dir
+/mnt/c/Users/pc/OneDrive/Documentos/AyDA/ProyectoClonado/OptiPro_CNC/build/CMakeFiles/rebuild_cache.dir

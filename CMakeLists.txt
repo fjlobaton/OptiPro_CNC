@@ -38,6 +38,7 @@ target_link_libraries(imgui PUBLIC
 
 add_executable(${PROJECT_NAME}
         src/main.cpp
+        src/Gui.cpp
         src/Part.cpp
         src/Machine.cpp
         src/Operation.cpp
