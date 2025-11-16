@@ -3,8 +3,10 @@
 
 #include "imgui.h"
 #include "types.hpp"
+#include <functional>
+#include "Commands.hpp"
 
 // Renders the main graphical interface using ImGui.
-void renderGui(StateSnapshot snapshot);
+void renderGui(StateSnapshot snapshot, std::function<void(const CommandVariant&)> sendCommand);
 
 #endif 

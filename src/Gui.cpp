@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <cstring>
 
-void renderGui(StateSnapshot snapshot)
+void renderGui(StateSnapshot snapshot, std::function<void(const CommandVariant&)> sendCommand)
 {
     static int counter = 0;
 
@@ -29,6 +29,17 @@ void renderGui(StateSnapshot snapshot)
     static char search[128] = "";
     ImGui::InputText("Search by name", search, IM_ARRAYSIZE(search));
 
+    auto icontains = [](const char* hay, const char* needle) -> bool 
+    {
+        if (!needle || !*needle) 
+        {
+            return true;
+        } 
+        std::string h(hay), n(needle);
+        std::transform(h.begin(), h.end(), h.begin(), ::tolower);
+        std::transform(n.begin(), n.end(), n.begin(), ::tolower);
+        return h.find(n) != std::string::npos;
+    };
     if (ImGui::BeginTable("Machines", 5, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
         ImGui::TableSetupColumn("ID");
         ImGui::TableSetupColumn("Name");
@@ -51,17 +62,6 @@ void renderGui(StateSnapshot snapshot)
             {8, "Machine8", MachineType::PRESS_BREAK, "Idle", 0},
         };
         
-        auto icontains = [](const char* hay, const char* needle) -> bool 
-        {
-            if (!needle || !*needle) 
-            {
-                return true;
-            } 
-            std::string h(hay), n(needle);
-            std::transform(h.begin(), h.end(), h.begin(), ::tolower);
-            std::transform(n.begin(), n.end(), n.begin(), ::tolower);
-            return h.find(n) != std::string::npos;
-        };
         for (const auto& machine : machines) 
         {
             if (!icontains(machine.name, search))
@@ -140,10 +140,17 @@ void renderGui(StateSnapshot snapshot)
                 for (const auto& part : parts) 
                 {
                     ImGui::TableNextRow();
-                    ImGui::TableSetColumnIndex(0); ImGui::Text("%d", part.id);
-                    ImGui::TableSetColumnIndex(1); ImGui::Text("%s", part.desc);
-                    ImGui::TableSetColumnIndex(2); ImGui::Text("%s", toString(part.machine).data());
-                    ImGui::TableSetColumnIndex(3); ImGui::Text("%.1f min", part.time);
+                    ImGui::TableSetColumnIndex(0); 
+                    ImGui::Text("%d", part.id);
+
+                    ImGui::TableSetColumnIndex(1); 
+                    ImGui::Text("%s", part.desc);
+
+                    ImGui::TableSetColumnIndex(2); 
+                    ImGui::Text("%s", toString(part.machine).data());
+                    
+                    ImGui::TableSetColumnIndex(3); 
+                    ImGui::Text("%.1f min", part.time);
                 }
 
                 ImGui::EndTable();

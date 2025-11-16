@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
 
     float main_scale = ImGui_ImplSDL2_GetContentScaleForDisplay(0);
     SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_MAXIMIZED);
-    SDL_Window* window = SDL_CreateWindow("Dear ImGui SDL2+OpenGL3 example", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, (int)(1280 * main_scale), (int)(800 * main_scale), window_flags);
+    SDL_Window* window = SDL_CreateWindow("OptiPro CNC", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, (int)(1280 * main_scale), (int)(800 * main_scale), window_flags);
 
     if (window == nullptr)
     {
@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
     style.ScaleAllSizes(main_scale);        // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)
     style.FontScaleDpi = main_scale;        // Set initial font scale. (using io.ConfigDpiScaleFonts=true makes this unnecessary. We leave both here for documentation purpose)
 
-    io.Fonts->AddFontFromFileTTF("/usr/share/fonts/google-noto/NotoSans-Medium.ttf");
+    //io.Fonts->AddFontFromFileTTF("/usr/share/fonts/google-noto/NotoSans-Medium.ttf");
     // Setup Platform/Renderer backends
     ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
     ImGui_ImplOpenGL3_Init(glsl_version);
@@ -102,7 +102,10 @@ int main(int argc, char* argv[]) {
         ImGui_ImplSDL2_NewFrame();
         ImGui::NewFrame();
         ImGui::ShowDemoWindow();
-        renderGui(latestState);
+        renderGui(latestState, [&](const CommandVariant& c)
+        { 
+            engine.sendCommand(c); 
+        });
 
         // Rendering
         ImGui::Render();

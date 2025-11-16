@@ -39,6 +39,7 @@ target_link_libraries(imgui PUBLIC
 add_executable(${PROJECT_NAME}
         src/main.cpp
         src/Gui.cpp
+        src/Optimizer.cpp
         include/ConcurrentQueue.hpp
         include/Commands.hpp
         include/Engine.hpp

@@ -13,6 +13,7 @@
 
 #include "Commands.hpp"
 #include "ConcurrentQueue.hpp"
+#include "Optimizer.hpp"
 
 class Engine {
     public:
@@ -80,7 +81,6 @@ class Engine {
 
     }
     void handleCommand(const AddMachineCommand& command) {
-
     }
     void handleCommand(const GenerateRandomMachinesCommand& command) {
         generateRandomMachines(command.count);
@@ -107,7 +107,6 @@ class Engine {
         state_.count++;
         //std::cout << "optimizing!!!!!" << std::endl;
     }
-
     void publishSnashot() {
         //std::cout << "publishing" << std::endl;
         StateSnapshot snapshot{state_};
