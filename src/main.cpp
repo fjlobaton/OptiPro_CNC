@@ -11,17 +11,17 @@
 #include "types.hpp"
 int main(int argc, char* argv[]) {
 
-    Engine engine(std::chrono::milliseconds{100});
+    Engine engine(std::chrono::milliseconds{1000});
     StateSnapshot latestState;
-    //Gui mainGui(*engine);
 
-    //void send mahcine command(Machine machine){
-    // engine.sendcommand(Sendmachinecommand(machine));
-    auto generateMachines = GenerateRandomMachinesCommand{4};
-    //std::cout << "command" << std::endl;
-    engine.sendCommand(generateMachines);
-    //std::cout << "command2" << std::endl;
+
+    //initialize engine with random tools and machines using commands
+    engine.sendCommand(GenerateRandomToolsCommand{20});
+    engine.sendCommand(GenerateRandomMachinesCommand{4});
+    engine.sendCommand(GenerateRandomJobsCommand{1,2});
     engine.start();
+
+
     // Initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         return -1;
@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
     style.ScaleAllSizes(main_scale);        // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)
     style.FontScaleDpi = main_scale;        // Set initial font scale. (using io.ConfigDpiScaleFonts=true makes this unnecessary. We leave both here for documentation purpose)
 
-    io.Fonts->AddFontFromFileTTF("/usr/share/fonts/google-noto/NotoSans-Medium.ttf");
+    //io.Fonts->AddFontFromFileTTF("/usr/share/fonts/google-noto/NotoSans-Medium.ttf");
     // Setup Platform/Renderer backends
     ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
     ImGui_ImplOpenGL3_Init(glsl_version);
@@ -107,6 +107,7 @@ int main(int argc, char* argv[]) {
         ImGui_ImplSDL2_NewFrame();
         ImGui::NewFrame();
         ImGui::ShowDemoWindow();
+        RenderProductionStateUI(latestState.productionState);
         renderGui(latestState);
 
         // Rendering

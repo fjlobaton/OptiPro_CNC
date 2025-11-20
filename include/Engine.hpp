@@ -15,6 +15,7 @@
 #include "Commands.hpp"
 #include "ConcurrentQueue.hpp"
 #include "GeneratorUtils.hpp"
+#include "utils.h"
 
 class Engine {
 public:
@@ -54,6 +55,7 @@ public:
         return updates_.try_pop();
     }
     std::optional<ToolLib> pollTool() {
+        tools_.push(ToolLib{state_.tools});
         return tools_.try_pop();
     }
 
@@ -124,8 +126,13 @@ private:
     }
 
 
+
+    void handleCommand(const GenerateRandomPartCommand &command)
+    {
+        GenerateRandomPart();
+    }
     void handleCommand(const GenerateRandomToolsCommand &command) {
-        generateRandomToools(command.count);
+        generateRandomTools(command.count);
     }
 
 
@@ -136,7 +143,10 @@ private:
 
     void publishSnashot() {
         std::cout << "publishing" << std::endl;
-        std::cout << toString(state_.machines[1].machineType).data() << std::endl;
+        for (const auto &op : state_.operations) {
+            std::cout << "opId:" << op.second.id << " partId:" << op.second.partId << std::endl;
+        }
+
         StateSnapshot snapshot{state_};
         updates_.push(std::move(snapshot));
     }
@@ -163,6 +173,26 @@ private:
 
     void generateRandomJobs(const int minJobs, const int maxJobs) {
         static thread_local std::mt19937 rng{std::random_device{}()};
+        std::uniform_int_distribution<int> jobs(minJobs, maxJobs);
+
+        const int numJobs = jobs(rng);
+        for (int i = 1; i <= numJobs; i++) {
+            auto [job , newParts, newOperations, lastJobId, lastPartId,lLastOpId]
+            = GenerateRandomJob(rng,numJobs,
+            "",nextJobId_, nextPartId_, nextOperationId_, state_.parts,
+            state_.tools, state_.machines);
+            state_.jobs[job.jobId] = std::move(job);
+            for (auto &part: newParts) {
+                state_.parts[part.first] = std::move(part.second);
+            }
+            for (auto &op: newOperations) {
+                state_.operations[op.first] = std::move(op.second);
+            }
+            nextOperationId_ = lLastOpId;
+            nextPartId_ = lastPartId;
+            nextJobId_ = lastJobId;
+        }
+
     }
 
     void generateRandomMachines(int count) {
@@ -179,6 +209,7 @@ private:
             //machineType and capabilities;
             machine.machineType = randomMachineType(rng);
             auto machineSizeClass = randomMachineSizeClass(rng);
+            machine.sizeClass = machineSizeClass;
             machine.workEnvelope = randomWorkEnvelope(rng, machineSizeClass);
             machine.machineSpecs = randomMachineSpecs(rng);
 
@@ -201,12 +232,45 @@ private:
             state_.machines[machine.id] = std::move(machine);
         }
     }
-    void generateRandomToools(int count) {
+    void generateRandomTools(int count) {
         static thread_local std::mt19937 rng{std::random_device{}()};
         for (int i = 0; i < count; ++i) {
             state_.tools[nextToolId_] = std::move(generateRandomTool(nextToolId_,rng));
             ++nextToolId_;
         }
+    }
+
+    void GenerateRandomPart()
+    {
+        static thread_local std::mt19937 rng{std::random_device{}()};
+        //std::cout << "generating part" << std::endl;
+        //std::cout << "part id" << nextPartId_ << " opid:" << nextOperationId_ << std::endl;
+        auto [part, ops, lastOpId] = GenerateRandomPartWithOperations(rng,nextPartId_,nextOperationId_,state_.tools, state_.machines);
+        nextOperationId_ = lastOpId;
+        state_.parts[part.id] = std::move(part);
+        for (auto& op : ops)
+        {
+            state_.operations[op.id] = std::move(op);
+        }
+        ++nextPartId_;
+        //std::cout << "after part generation" << std::endl;
+        //std::cout << "part id" << nextPartId_ << " opid:" << nextOperationId_ << std::endl;
+    }
+
+    void GenerateRandomParts(const int amount)
+    {
+        //creates rng number and adds the parts and operations to the state
+        static thread_local std::mt19937 rng{std::random_device{}()};
+        auto [parts , operations, lastPartId, lastOpId] = generateRandomParts(rng,amount,nextPartId_,nextOperationId_,state_.tools,state_.machines);
+        for (auto& [partId,part] : parts) {
+            state_.parts[partId] = std::move(part);
+        }
+        for (auto& [opId,operation] : operations) {
+            state_.operations[opId] = std::move(operation);
+        }
+        //updates the operation and part ids
+        nextOperationId_ = lastOpId;
+        nextPartId_ = lastPartId;
     }
     std::atomic<bool> running_;
     std::thread worker_;

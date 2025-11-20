@@ -44,6 +44,7 @@ add_executable(${PROJECT_NAME}
         include/Engine.hpp
         include/Optimizer.hpp
         include/GeneratorUtils.hpp
+        include/utils.h
 )
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 #now link everything with main project
