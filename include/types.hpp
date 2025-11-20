@@ -17,7 +17,7 @@
 //X-macro patter to make enum declaration easier to automatically generate tostrings for ui viewing
 #define STATE_LIST(X) X(pending) X(running) X(completed) X(stopped) X(cancelled)
 #define MACHINE_STATE_LIST(X) X(idle) X(running) X(stopped) X(error)
-#define MACHINE_TYPE_LIST(X) X(DEFAULT) X(VMC_3AXIS) X(VMC_4AXIS) X(VMC_5AXIS) X(LATHE) X(TURN_MILL) X(LASER_CUTTER) X(PRESS_BREAK)
+#define MACHINE_TYPE_LIST(X) X(DEFAULT) X(VMC_3AXIS) X(VMC_4AXIS) X(VMC_5AXIS) X(LATHE) X(TURN_MILL) X(LASER_CUTTER) X(PRESS_BREAK) X(count)
 #define PRIORITY_LIST(X) X(low) X(high) X(normal) X(urgent)
 #define MACHINE_SPECS_LIST(X) X(NO_SPECS) X(highspeed_spindle) X(double_turret) X(long_tools)
 
@@ -45,6 +45,12 @@ DEFINE_ENUM(MachineType, MACHINE_TYPE_LIST);
 DEFINE_ENUM(Priority, PRIORITY_LIST);
 DEFINE_ENUM(MachineSpecs, MACHINE_SPECS_LIST)
 // Use strong types for IDs for clarity and safety
+
+enum class MachineSizeClass {
+    Small,
+    Medium,
+    Large
+};
 using JobID = std::string;
 using PartID = int;
 using ToolID = int;
@@ -111,7 +117,7 @@ struct Tool {
 
 struct ProductionState {
     std::map<JobID,Job> jobs;
-    std::map<PartID,Job> partJobs;
+    std::map<PartID,Part> parts;
     std::map<ToolID,Tool> tools;
     std::map<MachineID,Machine> machines;
     std::map<OperationID, Operation> operations;
@@ -121,3 +127,11 @@ struct ProductionState {
 struct StateSnapshot {
     ProductionState productionState;
 };
+
+struct ToolLib {
+    std::map<int,Tool> tools;
+};
+
+inline std::vector<std::string_view> toolNames = {"EndMill" , "FaceMill" ,
+    "Ball Nose EndMill", "Drill" , "Reamer" , "Tap" , "Boring Bar" , "ChamferMill" , "ThreadMill" , "Turning Tool",
+    "Grooving Tool" , "Threading tool" , "GunDrill"};

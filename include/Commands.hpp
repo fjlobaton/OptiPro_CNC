@@ -21,6 +21,10 @@ struct GenerateRandomMachinesCommand {
 struct AddToolCommand {
     Tool tool;
 };
+struct AddToolsCommand {
+    std::vector<Tool> tools;
+};
+
 
 //operation related commands
 struct AddOperationCommand {
@@ -29,12 +33,16 @@ struct AddOperationCommand {
 
 //part related commands
 struct AddPartCommand {
-    Part part;
+    Part &part;
+    std::vector<Operation> &operations;
 };
 
 //job related commands
 struct AddJobCommand {
     Job job;
+};
+struct GenerateRandomToolsCommand {
+    int count;
 };
 struct GenerateRandomJobsCommand {
     int minJobs;
@@ -50,7 +58,9 @@ using CommandVariant = std::variant<
     AddOperationCommand,
     AddPartCommand,
     AddToolCommand,
+    AddToolsCommand,
     GenerateRandomJobsCommand,
+    GenerateRandomToolsCommand,
     StopEgnineCommand
     >;
 

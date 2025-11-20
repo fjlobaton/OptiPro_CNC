@@ -13,9 +13,14 @@ int main(int argc, char* argv[]) {
 
     Engine engine(std::chrono::milliseconds{100});
     StateSnapshot latestState;
+    //Gui mainGui(*engine);
 
-    auto addMachine = AddMachineCommand{};
-    engine.sendCommand(addMachine);
+    //void send mahcine command(Machine machine){
+    // engine.sendcommand(Sendmachinecommand(machine));
+    auto generateMachines = GenerateRandomMachinesCommand{4};
+    //std::cout << "command" << std::endl;
+    engine.sendCommand(generateMachines);
+    //std::cout << "command2" << std::endl;
     engine.start();
     // Initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {

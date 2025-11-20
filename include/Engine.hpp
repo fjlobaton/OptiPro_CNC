@@ -4,6 +4,7 @@
 
 #ifndef OPTIPRO_CNC_OPTIMIZATIONENGINE_HPP
 #define OPTIPRO_CNC_OPTIMIZATIONENGINE_HPP
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <iostream>
@@ -13,20 +14,29 @@
 
 #include "Commands.hpp"
 #include "ConcurrentQueue.hpp"
+#include "GeneratorUtils.hpp"
 
 class Engine {
-    public:
+public:
     Engine(std::chrono::milliseconds tick_period)
         : running_{false},
-            tickPeriod_(tick_period),
-            nextMachineId_(0){}
+          tickPeriod_(tick_period),
+          nextMachineId_(0),
+          nextPartId_(0),
+          nextJobId_(0),
+          nextOperationId_(0),
+          nextToolId_(0) {
+    }
+
     ~Engine() {
         stop();
     }
+
     void start() {
         running_ = true;
         worker_ = std::thread(&Engine::run, this);
     }
+
     void stop() {
         if (!running_) return;
         running_ = false;
@@ -34,14 +44,20 @@ class Engine {
             worker_.join();
         }
     }
+
     // function to send command that the ui uses
-    void sendCommand(const CommandVariant& command) {
+    void sendCommand(const CommandVariant &command) {
         commands_.push(command);
     }
+
     std::optional<StateSnapshot> pollUpdate() {
         return updates_.try_pop();
     }
-    private:
+    std::optional<ToolLib> pollTool() {
+        return tools_.try_pop();
+    }
+
+private:
     void run() {
         using clock = std::chrono::steady_clock;
         auto nextTick = clock::now();
@@ -55,7 +71,7 @@ class Engine {
             //run optimizer at 10hz
             auto now = clock::now();
             if (now >= nextTick) {
-
+                //optimize, then publish the snapshot
                 optimizeOnce();
                 publishSnashot();
                 nextTick += tickPeriod_;
@@ -66,42 +82,52 @@ class Engine {
             }
         }
     }
+
     void processCommands() {
         while (true) {
             auto command = commands_.try_pop();
             if (!command) break;
-            std::visit([this](auto&& cmd) {handleCommand(cmd); }, *command);
+            std::visit([this](auto &&cmd) { handleCommand(cmd); }, *command);
         }
     }
-    void handleCommand(const StopEgnineCommand& command) {
+
+    void handleCommand(const StopEgnineCommand &command) {
         running_ = false;
     }
-    void handleCommand(const AddJobCommand& command) {
-
+    void handleCommand(const AddJobCommand &command) {
     }
-    void handleCommand(const AddMachineCommand& command) {
 
+    void handleCommand(const AddMachineCommand &command) {
     }
-    void handleCommand(const GenerateRandomMachinesCommand& command) {
+
+    void handleCommand(const GenerateRandomMachinesCommand &command) {
         generateRandomMachines(command.count);
     }
 
-    void handleCommand(const AddOperationCommand& command) {
+    void handleCommand(const AddOperationCommand &command) {
+    }
 
+    void handleCommand(const AddPartCommand &command) {
+        addPart(command.part, command.operations);
     }
-    void handleCommand(const AddPartCommand& command) {
 
+    void handleCommand(const AddToolCommand &command) {
+        addTool(command.tool);
     }
-    void handleCommand(const AddToolCommand& command) {
+    void handleCommand(const AddToolsCommand &command) {
+        for (auto &tool : command.tools) {
+            addTool(tool);
+        }
+    }
+    void handleCommand(const GenerateRandomJobsCommand &command) {
+        generateRandomJobs(command.minJobs, command.maxJobs);
+    }
 
-    }
-    void handleCommand(const GenerateRandomJobsCommand& command) {
-        generateRandomJobs(command.minJobs,command.maxJobs);
-    }
-    void generateRandomJobs(const int minJobs, const int maxJobs) {
-        static thread_local std::mt19937 rng{std::random_device{}()};
 
+    void handleCommand(const GenerateRandomToolsCommand &command) {
+        generateRandomToools(command.count);
     }
+
 
     void optimizeOnce() {
         state_.count++;
@@ -109,17 +135,79 @@ class Engine {
     }
 
     void publishSnashot() {
-        //std::cout << "publishing" << std::endl;
+        std::cout << "publishing" << std::endl;
+        std::cout << toString(state_.machines[1].machineType).data() << std::endl;
         StateSnapshot snapshot{state_};
         updates_.push(std::move(snapshot));
     }
-    void generateRandomMachines(int count) {
-        if (count <=0) return;
 
-        static thread_local std::mt19937 rng{std::random_device{}()};
+    void addPart(Part &part,std::vector<Operation> operations) {
+        //creates a part with its associated operations
+        //belives that the operations are correctly initialized
+        part.id = nextPartId_++;
+        state_.parts[part.id] = std::move(part);
+        for (auto &op : part.operations) {
+            operations[op].partId = part.id;
+            state_.operations[nextOperationId_] = std::move(operations[op]);
+            state_.parts[part.id].operations.push_back(nextOperationId_);
+            nextOperationId_++;
+        }
 
     }
 
+    void addTool(Tool tool) {
+        tool.toolId = ++nextToolId_;
+        state_.tools[tool.toolId] = std::move(tool);
+
+    }
+
+    void generateRandomJobs(const int minJobs, const int maxJobs) {
+        static thread_local std::mt19937 rng{std::random_device{}()};
+    }
+
+    void generateRandomMachines(int count) {
+        if (count <= 0) return;
+        // generate a rng device
+        static thread_local std::mt19937 rng{std::random_device{}()};
+
+        for (int i = 0; i < count; ++i) {
+            //create a new machine and assing next id
+            Machine machine{};
+            machine.id = nextMachineId_++;
+            machine.status = MachineState::idle;
+
+            //machineType and capabilities;
+            machine.machineType = randomMachineType(rng);
+            auto machineSizeClass = randomMachineSizeClass(rng);
+            machine.workEnvelope = randomWorkEnvelope(rng, machineSizeClass);
+            machine.machineSpecs = randomMachineSpecs(rng);
+
+            //selecting random tools from the tool library of the factory
+            //map vector to tools
+            std::vector<ToolID> to_select;
+            for (const auto &[fst, snd]: state_.tools) {
+                to_select.push_back(fst);
+            }
+            //shuffle the vector to get a random list
+            std::shuffle(to_select.begin(), to_select.end(), rng);
+            //select a random ammount of tools from the library
+            std::uniform_int_distribution<int> distribution(1, state_.tools.size()-1);
+            int numToSelect = distribution(rng);
+            //push those tools into the machine tool lib and assigning them a internal tool id
+            for (int j = 0; j < numToSelect; ++j) {
+                machine.tools.insert({j,to_select[j]});
+            }
+            //push the machine back to the list of machines
+            state_.machines[machine.id] = std::move(machine);
+        }
+    }
+    void generateRandomToools(int count) {
+        static thread_local std::mt19937 rng{std::random_device{}()};
+        for (int i = 0; i < count; ++i) {
+            state_.tools[nextToolId_] = std::move(generateRandomTool(nextToolId_,rng));
+            ++nextToolId_;
+        }
+    }
     std::atomic<bool> running_;
     std::thread worker_;
     std::chrono::milliseconds tickPeriod_;
@@ -128,9 +216,12 @@ class Engine {
 
     ConcurrentQueue<CommandVariant> commands_;
     ConcurrentQueue<StateSnapshot> updates_;
+    ConcurrentQueue<ToolLib> tools_;
+
     int nextMachineId_;
     int nextJobId_;
     int nextPartId_;
     int nextOperationId_;
+    int nextToolId_;
 };
 #endif //OPTIPRO_CNC_OPTIMIZATIONENGINE_HPP
