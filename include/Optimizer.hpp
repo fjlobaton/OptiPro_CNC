@@ -2,7 +2,5 @@
 // Created by fjasis on 11/13/25.
 //
 
-#ifndef OPTIPRO_CNC_OPTIMIZER_HPP
-#define OPTIPRO_CNC_OPTIMIZER_HPP
+#pragma once
 
-#endif //OPTIPRO_CNC_OPTIMIZER_HPP

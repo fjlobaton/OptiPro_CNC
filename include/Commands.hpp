@@ -1,9 +1,8 @@
 //
 // Created by fjasis on 11/13/25.
 //
+#pragma once
 
-#ifndef OPTIPRO_CNC_COMMANDS_HPP
-#define OPTIPRO_CNC_COMMANDS_HPP
 #include <variant>
 
 #include "types.hpp"
@@ -71,5 +70,3 @@ using CommandVariant = std::variant<
     GenerateRandomPartCommand,
     StopEgnineCommand
     >;
-
-#endif //OPTIPRO_CNC_COMMANDS_HPP

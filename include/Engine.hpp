@@ -1,9 +1,7 @@
 //
 // Created by fjasis on 11/13/25.
 //
-
-#ifndef OPTIPRO_CNC_OPTIMIZATIONENGINE_HPP
-#define OPTIPRO_CNC_OPTIMIZATIONENGINE_HPP
+#pragma once
 #include <algorithm>
 #include <atomic>
 #include <chrono>
@@ -125,8 +123,6 @@ private:
         generateRandomJobs(command.minJobs, command.maxJobs);
     }
 
-
-
     void handleCommand(const GenerateRandomPartCommand &command)
     {
         GenerateRandomPart();
@@ -135,17 +131,16 @@ private:
         generateRandomTools(command.count);
     }
 
-
     void optimizeOnce() {
         state_.count++;
         //std::cout << "optimizing!!!!!" << std::endl;
     }
 
     void publishSnashot() {
-        std::cout << "publishing" << std::endl;
-        for (const auto &op : state_.operations) {
-            std::cout << "opId:" << op.second.id << " partId:" << op.second.partId << std::endl;
-        }
+        // std::cout << "publishing" << std::endl;
+        // for (const auto &op : state_.operations) {
+        //     std::cout << "opId:" << op.second.id << " partId:" << op.second.partId << std::endl;
+        // }
 
         StateSnapshot snapshot{state_};
         updates_.push(std::move(snapshot));
@@ -164,13 +159,11 @@ private:
         }
 
     }
-
     void addTool(Tool tool) {
         tool.toolId = ++nextToolId_;
         state_.tools[tool.toolId] = std::move(tool);
 
     }
-
     void generateRandomJobs(const int minJobs, const int maxJobs) {
         static thread_local std::mt19937 rng{std::random_device{}()};
         std::uniform_int_distribution<int> jobs(minJobs, maxJobs);
@@ -288,4 +281,4 @@ private:
     int nextOperationId_;
     int nextToolId_;
 };
-#endif //OPTIPRO_CNC_OPTIMIZATIONENGINE_HPP
+

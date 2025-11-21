@@ -96,6 +96,7 @@ struct Operation {
     uint32_t machineTime;
     MachineType requiredMachine;
     std::set<MachineSpecs> requiredMachineSpces;
+    bool completed = false;
 };
 struct Machine {
     MachineID id;

@@ -192,8 +192,7 @@ inline void RenderProductionStateUI(const ProductionState& state) {
                             ImGui::TableSetColumnIndex(0);
                             ImGui::TextDisabled("  (No operations)");
                         } else {
-                            for (size_t i = 0; i < part.operations.size(); ++i) {
-                                OperationID opId = part.operations[i];
+                            for (int opId : part.operations) {
                                 ImGui::TableNextRow();
                                 ImGui::TableSetColumnIndex(0);
 
@@ -229,7 +228,7 @@ inline void RenderProductionStateUI(const ProductionState& state) {
                     ImGui::TableSetColumnIndex(1); ImGui::Text("%s", tool.name.data());
                     ImGui::TableSetColumnIndex(2); ImGui::Text("%d", tool.currentToolLife);
                     ImGui::TableSetColumnIndex(3); ImGui::Text("%d", tool.maxToolLife);
-                    ImGui::TableSetColumnIndex(4); ImGui::ProgressBar((float)tool.currentToolLife / tool.maxToolLife, ImVec2(-1, 0));
+                    ImGui::TableSetColumnIndex(4); ImGui::ProgressBar(static_cast<float>(tool.currentToolLife) / tool.maxToolLife, ImVec2(-1, 0));
                 }
                 ImGui::EndTable();
             }
