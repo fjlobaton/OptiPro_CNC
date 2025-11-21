@@ -57,6 +57,11 @@ public:
         return tools_.try_pop();
     }
 
+    
+   
+
+    
+
 private:
     void run() {
         using clock = std::chrono::steady_clock;
@@ -77,7 +82,14 @@ private:
             } else {
                 //wait before trying to get commands again
                 auto waitTime = std::chrono::duration_cast<std::chrono::milliseconds>(nextTick - now);
-                commands_.pop_for(waitTime);
+                //Capture the popped command!
+                auto earlyCommand = commands_.pop_for(waitTime);
+
+                if (earlyCommand) {
+                    std::visit([this](auto &&cmd) { handleCommand(cmd); }, *earlyCommand);
+
+                    publishSnashot(); 
+                }
             }
         }
     }
@@ -99,10 +111,6 @@ private:
     void handleCommand(const AddMachineCommand &command) {
     }
 
-    void handleCommand(const GenerateRandomMachinesCommand &command) {
-        generateRandomMachines(command.count);
-    }
-
     void handleCommand(const AddOperationCommand &command) {
     }
 
@@ -118,16 +126,11 @@ private:
             addTool(tool);
         }
     }
+     void handleCommand(const GenerateRandomMachinesCommand &command) {
+        generateRandomMachines(command.count);
+    }
     void handleCommand(const GenerateRandomJobsCommand &command) {
         generateRandomJobs(command.minJobs, command.maxJobs);
-    }
-
-    void handleCommand(const GenerateRandomPartCommand &command)
-    {
-        GenerateRandomPart();
-    }
-    void handleCommand(const GenerateRandomToolsCommand &command) {
-        generateRandomTools(command.count);
     }
 
     void optimizeOnce() {
@@ -136,11 +139,11 @@ private:
     }
 
     void publishSnashot() {
-        // std::cout << "publishing" << std::endl;
+         
         // for (const auto &op : state_.operations) {
         //     std::cout << "opId:" << op.second.id << " partId:" << op.second.partId << std::endl;
         // }
-
+        // std::cout << "publishing" << snapshot.productionState.machines.size() << std::endl;
         StateSnapshot snapshot{state_};
         updates_.push(std::move(snapshot));
     }
@@ -162,6 +165,13 @@ private:
         tool.toolId = ++nextToolId_;
         state_.tools[tool.toolId] = std::move(tool);
 
+    }
+    void handleCommand(const GenerateRandomPartCommand &command)
+    {
+        GenerateRandomPart();
+    }
+    void handleCommand(const GenerateRandomToolsCommand &command) {
+        generateRandomTools(command.count);
     }
     void generateRandomJobs(const int minJobs, const int maxJobs) {
         static thread_local std::mt19937 rng{std::random_device{}()};

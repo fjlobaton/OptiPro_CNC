@@ -9,11 +9,14 @@
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_opengl3.h"
 #include "types.hpp"
+#include "NewGui.hpp"
 int main(int argc, char* argv[]) {
 
     Engine engine(std::chrono::milliseconds{1000});
     StateSnapshot latestState;
 
+    GuiManager manager(engine);
+    
 
     //initialize engine with random tools and machines using commands
     engine.sendCommand(GenerateRandomToolsCommand{20});
@@ -108,7 +111,9 @@ int main(int argc, char* argv[]) {
         ImGui::NewFrame();
         ImGui::ShowDemoWindow();
         RenderProductionStateUI(latestState.productionState);
-        renderGui(latestState);
+        // renderGui(latestState);
+        manager.renderGui(latestState);
+
 
         // Rendering
         ImGui::Render();

@@ -12,6 +12,7 @@ FetchContent_Declare(
         imgui
         GIT_REPOSITORY https://github.com/ocornut/imgui.git
         GIT_TAG v1.92.4-docking
+        GIT_PROGRESS TRUE
 )
 #add imgui library files and backends
 FetchContent_MakeAvailable(imgui)
