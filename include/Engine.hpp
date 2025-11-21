@@ -17,12 +17,12 @@
 
 class Engine {
 public:
-    Engine(std::chrono::milliseconds tick_period)
+    explicit Engine(const std::chrono::milliseconds tick_period)
         : running_{false},
           tickPeriod_(tick_period),
           nextMachineId_(0),
-          nextPartId_(0),
           nextJobId_(0),
+          nextPartId_(0),
           nextOperationId_(0),
           nextToolId_(0) {
     }
@@ -69,8 +69,7 @@ private:
             if (!running_) break;
 
             //run optimizer at 10hz
-            auto now = clock::now();
-            if (now >= nextTick) {
+            if (auto now = clock::now(); now >= nextTick) {
                 //optimize, then publish the snapshot
                 optimizeOnce();
                 publishSnashot();
