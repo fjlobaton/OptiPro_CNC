@@ -17,10 +17,10 @@
 //X-macro patter to make enum declaration easier to automatically generate tostrings for ui viewing
 #define STATE_LIST(X) X(pending) X(running) X(completed) X(stopped) X(cancelled)
 #define MACHINE_STATE_LIST(X) X(idle) X(running) X(stopped) X(error)
-#define MACHINE_TYPE_LIST(X) X(DEFAULT) X(VMC_3AXIS) X(VMC_4AXIS) X(VMC_5AXIS) X(LATHE) X(TURN_MILL) X(LASER_CUTTER) X(PRESS_BREAK)
+#define MACHINE_TYPE_LIST(X) X(DEFAULT) X(VMC_3AXIS) X(VMC_4AXIS) X(VMC_5AXIS) X(LATHE) X(TURN_MILL) X(LASER_CUTTER) X(PRESS_BREAK) X(count)
 #define PRIORITY_LIST(X) X(low) X(high) X(normal) X(urgent)
 #define MACHINE_SPECS_LIST(X) X(NO_SPECS) X(highspeed_spindle) X(double_turret) X(long_tools)
-
+#define MACHINE_SIZE_CLASS_LIST(X) X(Small) X(Medium) X(Large)
 //macro to generate enum value
 #define AS_ENUM(Name) Name,
 //macro to generate enum cases for switch with outer scope EnumType
@@ -44,7 +44,14 @@ DEFINE_ENUM(MachineState, MACHINE_STATE_LIST);
 DEFINE_ENUM(MachineType, MACHINE_TYPE_LIST);
 DEFINE_ENUM(Priority, PRIORITY_LIST);
 DEFINE_ENUM(MachineSpecs, MACHINE_SPECS_LIST)
+DEFINE_ENUM(MachineSizeClass, MACHINE_SIZE_CLASS_LIST);
 // Use strong types for IDs for clarity and safety
+
+// enum class MachineSizeClass {
+//     Small,
+//     Medium,
+//     Large
+// };
 using JobID = std::string;
 using PartID = int;
 using ToolID = int;
@@ -65,6 +72,7 @@ struct SizeXYZ {
 };
 struct Job {
     JobID Id;
+    int jobId;
     std::map<PartID,uint32_t> parts;
     Priority priority;
     std::chrono::system_clock::time_point createdTime;
@@ -82,12 +90,14 @@ struct Operation {
     OperationID id;
     PartID partId;
     uint32_t quantity;
-    std::set<Tool> tools;
+    std::set<ToolID> tools;
     uint32_t totalTime;
     uint32_t setupTime;
     uint32_t machineTime;
     MachineType requiredMachine;
     std::set<MachineSpecs> requiredMachineSpces;
+    bool completed = false;
+
 };
 struct Machine {
     MachineID id;
@@ -97,6 +107,9 @@ struct Machine {
     MachineType machineType;
     SizeXYZ workEnvelope;
     std::set<MachineSpecs> machineSpecs;
+    MachineSizeClass sizeClass;
+
+
 };
 struct Tool {
     std::string_view name;
@@ -110,8 +123,8 @@ struct Tool {
 };
 
 struct ProductionState {
-    std::map<JobID,Job> jobs;
-    std::map<PartID,Job> partJobs;
+    std::map<int,Job> jobs;
+    std::map<PartID,Part> parts;
     std::map<ToolID,Tool> tools;
     std::map<MachineID,Machine> machines;
     std::map<OperationID, Operation> operations;
@@ -121,3 +134,16 @@ struct ProductionState {
 struct StateSnapshot {
     ProductionState productionState;
 };
+
+struct ToolLib {
+    std::map<int,Tool> tools;
+};
+struct JobGenerationResult {
+    Job job;
+    std::map<PartID, Part> newParts;
+    std::map<OperationID, Operation> newOperations;
+};
+
+inline std::vector<std::string_view> toolNames = {"EndMill" , "FaceMill" ,
+    "Ball Nose EndMill", "Drill" , "Reamer" , "Tap" , "Boring Bar" , "ChamferMill" , "ThreadMill" , "Turning Tool",
+    "Grooving Tool" , "Threading tool" , "GunDrill"};

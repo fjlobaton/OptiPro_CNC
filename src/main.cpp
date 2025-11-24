@@ -9,14 +9,22 @@
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_opengl3.h"
 #include "types.hpp"
+#include "NewGui.hpp"
 int main(int argc, char* argv[]) {
 
-    Engine engine(std::chrono::milliseconds{100});
+    Engine engine(std::chrono::milliseconds{1000});
     StateSnapshot latestState;
 
-    auto addMachine = AddMachineCommand{};
-    engine.sendCommand(addMachine);
+    GuiManager manager(engine);
+    
+
+    //initialize engine with random tools and machines using commands
+    engine.sendCommand(GenerateRandomToolsCommand{20});
+    engine.sendCommand(GenerateRandomMachinesCommand{4});
+    engine.sendCommand(GenerateRandomJobsCommand{1,2});
     engine.start();
+
+
     // Initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         return -1;

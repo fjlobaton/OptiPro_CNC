@@ -3,6 +3,7 @@
 #include <string>
 #include <algorithm>
 #include <cstring>
+#include "NewGui.hpp"
 
 void renderGui(StateSnapshot snapshot, std::function<void(const CommandVariant&)> sendCommand)
 {
@@ -13,7 +14,6 @@ void renderGui(StateSnapshot snapshot, std::function<void(const CommandVariant&)
 
 
     ImGui::Begin("Machine Dashboard");
-    
     ImGui::Columns(4);
     ImGui::Text("Total: 8");
     ImGui::NextColumn();
@@ -127,7 +127,7 @@ void renderGui(StateSnapshot snapshot, std::function<void(const CommandVariant&)
                 ImGui::TableSetupColumn("Machine");
                 ImGui::TableSetupColumn("Est. Time");
                 ImGui::TableHeadersRow();
-                
+
                 struct PartData { int id; const char* desc; MachineType machine; float time; };
                 static PartData parts[] = {
                     {101, "Bracket A", MachineType::VMC_3AXIS, 45.5},
