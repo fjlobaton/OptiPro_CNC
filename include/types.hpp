@@ -8,11 +8,13 @@
 #include <memory>
 #include <queue>
 #include <set>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <string>
 #include <cstdint>
 #include <unordered_set>
+#include <unordered_map>
 
 //X-macro patter to make enum declaration easier to automatically generate tostrings for ui viewing
 #define STATE_LIST(X) X(pending) X(running) X(completed) X(stopped) X(cancelled)
@@ -131,8 +133,14 @@ struct ProductionState {
     int count = 0;
 };
 
+struct MachineRuntime {
+    std::optional<OperationID> current_op;
+    double remaining_time = 0.0;
+};
+
 struct StateSnapshot {
     ProductionState productionState;
+    std::unordered_map<MachineID, MachineRuntime> runtime;
 };
 
 struct ToolLib {

@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
         ImGui::NewFrame();
         ImGui::ShowDemoWindow();
         RenderProductionStateUI(latestState.productionState);
-        // renderGui(latestState);
+        renderGui(latestState);
         manager.renderGui(latestState);
 
 

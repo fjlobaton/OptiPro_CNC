@@ -44,70 +44,70 @@ inline void RenderProductionStateUI(const ProductionState& state) {
         // -------------------------
         // TAB 1: MACHINES (With Tool Dropdown)
         // -------------------------
-        if (ImGui::BeginTabItem("Machines")) {
-            if (ImGui::BeginTable("TableMachines", 6, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable)) {
-                ImGui::TableSetupColumn("ID / Tools"); // Updated header
-                ImGui::TableSetupColumn("Type");
-                ImGui::TableSetupColumn("Status");
-                ImGui::TableSetupColumn("Size");
-                ImGui::TableSetupColumn("Work Env (mm)");
-                ImGui::TableSetupColumn("Queue");
-                ImGui::TableHeadersRow();
+        // if (ImGui::BeginTabItem("Machines")) {
+        //     if (ImGui::BeginTable("TableMachines", 6, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable)) {
+        //         ImGui::TableSetupColumn("ID / Tools"); // Updated header
+        //         ImGui::TableSetupColumn("Type");
+        //         ImGui::TableSetupColumn("Status");
+        //         ImGui::TableSetupColumn("Size");
+        //         ImGui::TableSetupColumn("Work Env (mm)");
+        //         ImGui::TableSetupColumn("Queue");
+        //         ImGui::TableHeadersRow();
 
-                for (const auto& [id, machine] : state.machines) {
-                    ImGui::TableNextRow();
+        //         for (const auto& [id, machine] : state.machines) {
+        //             ImGui::TableNextRow();
 
-                    // Col 1: ID (As a Tree Node)
-                    ImGui::TableSetColumnIndex(0);
-                    // Use ID as the tree identifier. "Machine %d" is the label.
-                    bool open = ImGui::TreeNode((void*)(intptr_t)machine.id, "Machine %d", machine.id);
+        //             // Col 1: ID (As a Tree Node)
+        //             ImGui::TableSetColumnIndex(0);
+        //             // Use ID as the tree identifier. "Machine %d" is the label.
+        //             bool open = ImGui::TreeNode((void*)(intptr_t)machine.id, "Machine %d", machine.id);
 
-                    // Render other columns normally
-                    ImGui::TableSetColumnIndex(1);
-                    ImGui::Text("%s", toString(machine.machineType).data());
+        //             // Render other columns normally
+        //             ImGui::TableSetColumnIndex(1);
+        //             ImGui::Text("%s", toString(machine.machineType).data());
 
-                    ImGui::TableSetColumnIndex(2);
-                    if (machine.status == MachineState::running) ImGui::TextColored(ImVec4(0,1,0,1), "Running");
-                    else if (machine.status == MachineState::error) ImGui::TextColored(ImVec4(1,0,0,1), "Error");
-                    else ImGui::Text("%s", toString(machine.status).data());
+        //             ImGui::TableSetColumnIndex(2);
+        //             if (machine.status == MachineState::running) ImGui::TextColored(ImVec4(0,1,0,1), "Running");
+        //             else if (machine.status == MachineState::error) ImGui::TextColored(ImVec4(1,0,0,1), "Error");
+        //             else ImGui::Text("%s", toString(machine.status).data());
 
-                    ImGui::TableSetColumnIndex(3);
-                    ImGui::Text("%s", toString(machine.sizeClass).data());
+        //             ImGui::TableSetColumnIndex(3);
+        //             ImGui::Text("%s", toString(machine.sizeClass).data());
 
-                    ImGui::TableSetColumnIndex(4);
-                    ImGui::Text("%.0f x %.0f x %.0f", machine.workEnvelope.X, machine.workEnvelope.Y, machine.workEnvelope.Z);
+        //             ImGui::TableSetColumnIndex(4);
+        //             ImGui::Text("%.0f x %.0f x %.0f", machine.workEnvelope.X, machine.workEnvelope.Y, machine.workEnvelope.Z);
 
-                    ImGui::TableSetColumnIndex(5);
-                    ImGui::Text("%zu ops", machine.operations.size());
+        //             ImGui::TableSetColumnIndex(5);
+        //             ImGui::Text("%zu ops", machine.operations.size());
 
-                    // If Tree Node is Open -> Render Nested Tools
-                    if (open) {
-                        if (machine.tools.empty()) {
-                            ImGui::TableNextRow();
-                            ImGui::TableSetColumnIndex(0);
-                            ImGui::TextDisabled("  (No tools assigned)");
-                        } else {
-                            for (const auto& [slot, toolId] : machine.tools) {
-                                ImGui::TableNextRow();
-                                ImGui::TableSetColumnIndex(0);
+        //             // If Tree Node is Open -> Render Nested Tools
+        //             if (open) {
+        //                 if (machine.tools.empty()) {
+        //                     ImGui::TableNextRow();
+        //                     ImGui::TableSetColumnIndex(0);
+        //                     ImGui::TextDisabled("  (No tools assigned)");
+        //                 } else {
+        //                     for (const auto& [slot, toolId] : machine.tools) {
+        //                         ImGui::TableNextRow();
+        //                         ImGui::TableSetColumnIndex(0);
 
-                                // Try to find tool name
-                                std::string toolName = "Unknown";
-                                if (state.tools.count(toolId)) {
-                                    toolName = std::string(state.tools.at(toolId).name);
-                                }
+        //                         // Try to find tool name
+        //                         std::string toolName = "Unknown";
+        //                         if (state.tools.count(toolId)) {
+        //                             toolName = std::string(state.tools.at(toolId).name);
+        //                         }
 
-                                // Indented list item
-                                ImGui::Text("  [Slot %d] Tool %d: %s", slot, toolId, toolName.c_str());
-                            }
-                        }
-                        ImGui::TreePop(); // Close the tree scope
-                    }
-                }
-                ImGui::EndTable();
-            }
-            ImGui::EndTabItem();
-        }
+        //                         // Indented list item
+        //                         ImGui::Text("  [Slot %d] Tool %d: %s", slot, toolId, toolName.c_str());
+        //                     }
+        //                 }
+        //                 ImGui::TreePop(); // Close the tree scope
+        //             }
+        //         }
+        //         ImGui::EndTable();
+        //     }
+        //     ImGui::EndTabItem();
+        // }
 
         // -------------------------
         // TAB 2: JOBS (With Parts Dropdown)
