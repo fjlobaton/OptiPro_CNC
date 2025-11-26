@@ -37,6 +37,9 @@ inline std::string TimeToString(const std::chrono::system_clock::time_point& tp)
     return ss.str();
 }
 // --- Main Render Function ---
+inline void RenderPriorityJobsUI(const ProductionState& state){
+
+}
 
 inline void RenderProductionStateUI(const ProductionState& state) {
     if (ImGui::BeginTabBar("ProductionStateTabs")) {

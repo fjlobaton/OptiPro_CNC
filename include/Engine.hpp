@@ -64,6 +64,15 @@ public:
     void runOptimizeNow() {
         optimizeOnce();
     }
+   
+    //VELOCIDAD DE PRODUCCION
+     void setTimerMultiplier(double multiplier) {
+        timer_multiplier_ = multiplier;
+    }
+     double getTimerMultiplier() const {
+        return timer_multiplier_;
+    }  
+
 
     // Return a copy of the latest schedule 
     std::vector<OptiProSimple::ScheduledOp> getCurrentSchedule() {
@@ -252,6 +261,12 @@ private:
         }
     }
 }
+
+
+
+
+
+int jobs_size_mem = 0;
     void run() {
         using clock = std::chrono::steady_clock;
         auto nextTick = clock::now();
@@ -264,8 +279,24 @@ private:
 
             //run optimizer at configured tick
             if (auto now = clock::now(); now >= nextTick) {
+
                 // advance processing by tickPeriod, inject random failures, optimize and publish snapshot
                 double dt = std::chrono::duration<double>(tickPeriod_).count();
+                //Optimze One
+                   
+                    //Ver si las maquina fallaron, si es asi replanificar.
+                  
+
+                // Advance processing
+                    //Ver si Una operacion se completo
+                    //Avanzar Tiempo de las operaciones en curso
+                    //Restando Tiempo
+
+
+                //Publish snapshot
+                    //Pasarle el Frame al GUI
+
+                
                 advanceProcessing(dt);
                 monitorAndInjectFailures();
                 optimizeOnce();
@@ -326,21 +357,72 @@ private:
     }
 
     void optimizeOnce() {
-    state_.count++;
+        state_.count++;
+        std::vector<Job> ordered;
+        for(auto i = state_.machines.begin(); i != state_.machines.end(); ++i)
+        {
+            if(i->second.status == MachineState::error)
+            {
+                //REPLANIFICAR
+                // simulateMachineFailure(i->first);
+                std::cout << "Engine: detected machine " << i->first << " in error; invoking replan\n";
+            }
+        }
+        
+            //NUEVO JOB
+            if (jobs_size_mem != state_.jobs.size())
+            {
 
-    for (const auto & [mid, mdata] : state_.machines) {
-        if (mdata.status == MachineState::error) {
-            std::cout << "Engine: detected machine " << mid << " in error; invoking replan\n";
-            simulateMachineFailure(mid);
-        }
-    }
-    
-    if (state_.count % 10 == 0) { 
-        std::cout << "=== DEBUG Colas ===" << std::endl;
-        for (const auto& [mid, machine] : state_.machines) {
-            std::cout << "Máquina " << mid << ": " << machine.operations.size() << " ops, estado: " << toString(machine.status).data() << std::endl;
-        }
-    }
+                //PRIORIDAD DE JOBS:
+
+                static const std::unordered_map<Priority,int> prioOrder = {
+                    {Priority::low,    0},
+                    {Priority::normal, 1},
+                    {Priority::high,   2},
+                    {Priority::urgent, 3},
+                };
+
+                auto cmp = [&](const Job& a, const Job& b) {
+                    // 1. initialized=true primero
+                    if (a.initialized != b.initialized)
+                        return a.initialized;      // true primero
+
+                    // 2. prioridad
+                    if (a.priority != b.priority)
+                        return static_cast<int>(a.priority) > static_cast<int>(b.priority);
+
+                    // 3. desempate para evitar inestabilidad → por ID
+                    return a.Id < b.Id;   // usa lo que tengas como identificador único
+                };
+
+                // Crear vector temporal ordenable
+                std::vector<Job> ordered;
+
+                ordered.reserve(state_.jobs.size());
+
+                for (auto& [id, job] : state_.jobs)
+                    ordered.push_back(job);
+
+                std::sort(ordered.begin(), ordered.end(), cmp);
+
+                for (auto& job : ordered) {
+                    for(auto part : job.parts){
+                        part.first;//ID DE PARTES ORDENADA
+                        for(auto ope : state_.operations){
+                           
+                            if(part.first ==  ope.second.partId && ope.second.state == State::pending ){
+                                //Con mi lista ordenada de jobs, asignar las operaciones a las maquinas
+                                assignOperationToMachine(ope.second.id);
+                                ope.second.state = State::pending; 
+                            }
+                        }
+                        
+                    }
+                }
+                jobs_size_mem = state_.jobs.size();
+                
+            }
+        
 }
 
     void publishSnashot() {
@@ -400,17 +482,22 @@ private:
             = GenerateRandomJob(rng,numJobs,
             "",nextJobId_, nextPartId_, nextOperationId_, state_.parts,
             state_.tools, state_.machines);
+
             state_.jobs[job.jobId] = std::move(job);
+
             for (auto &part: newParts) {
                 state_.parts[part.first] = std::move(part.second);
             }
+
             for (auto &op: newOperations) {
                 state_.operations[op.first] = std::move(op.second);
             }
+
             // Assign created operations to machines
             for (const auto &op : newOperations) {
                 assignOperationToMachine(op.first);
             }
+
             nextOperationId_ = lLastOpId;
             nextPartId_ = lastPartId;
             nextJobId_ = lastJobId;
@@ -475,10 +562,10 @@ private:
         {
             state_.operations[op.id] = std::move(op);
         }
-        // assign ops created for this part
-        for (const auto &op : ops) {
-            assignOperationToMachine(op.id);
-        }
+        //No assign ops created for this part
+        // for (const auto &op : ops) {
+        //     assignOperationToMachine(op.id);
+        // }
         ++nextPartId_;
         //std::cout << "after part generation" << std::endl;
         //std::cout << "part id" << nextPartId_ << " opid:" << nextOperationId_ << std::endl;
@@ -486,6 +573,11 @@ private:
 
     // Assign a single operation to the first compatible machine (simple heuristic)
     void assignOperationToMachine(OperationID opid) {
+
+
+       
+
+
         auto itop = state_.operations.find(opid);
         if (itop == state_.operations.end()) return;
         const auto &op = itop->second;
@@ -499,9 +591,12 @@ private:
                 }
             }
             if (!ok) continue;
-            m.operations.push(opid);
-            if (m.status != MachineState::error) m.status = MachineState::running;
             
+            if (m.status != MachineState::error){ 
+                m.status = MachineState::running;
+                state_.operations[opid].state = State::running; 
+                m.operations.push(opid);
+            }
             return;
         }
     }
@@ -552,5 +647,7 @@ private:
     int nextPartId_;
     int nextOperationId_;
     int nextToolId_;
+
+    double timer_multiplier_ = 1.0;
 };
 
