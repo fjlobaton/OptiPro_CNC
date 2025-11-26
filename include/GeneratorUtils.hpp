@@ -125,10 +125,10 @@ inline std::pair<std::vector<Operation>, OperationID> generateRandomOperations(s
     std::vector<Operation> operations;
 
     auto baseOpId = startOpId;
-    //generate 1-5 ops for each part a good number
-    std::uniform_int_distribution<int> opCountDist(1,5);
-    int numOperations = opCountDist(rng);
-
+    // //generate 1-5 ops for each part a good number
+    // std::uniform_int_distribution<int> opCountDist(1,5);
+    // int numOperations = opCountDist(rng);
+    int numOperations = 1;
     std::vector<Tool> availableTools;
     for (const auto& [id, tool] : toolLib) {
         availableTools.push_back(tool);
@@ -273,8 +273,8 @@ inline std::tuple<Job , std::map<PartID, Part> , std::map<OperationID, Operation
     std::map<PartID, Part> newParts;
     std::map<OperationID, Operation> newOperations;
     std::vector<PartID> availableParts;
-    float newPartProbability = 0.5f;
-    int newOpId = 0;
+    float newPartProbability = 1.0f;
+    int newOpId = nextOpId;
     int newPartId = nextPartId;
 
     for (auto const& [partId , part] : parts) {
@@ -311,7 +311,7 @@ inline std::tuple<Job , std::map<PartID, Part> , std::map<OperationID, Operation
             for (const auto& op : newOps) {
                 newOperations[op.id] = op;
             }
-            newOpId = ++lastOpId;
+            newOpId = lastOpId;
         }else {
             //use exising part
             std::uniform_int_distribution<size_t> partIndexDist(0,parts.size()-1);

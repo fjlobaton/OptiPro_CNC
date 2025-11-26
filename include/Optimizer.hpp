@@ -85,22 +85,23 @@ namespace OptiProSimple {
     };
     inline void build_graph_from_state(const ProductionState &state, Graph &g) {
     
-    g.clear();
-    for (const auto & [partId, part] : state.parts) {
-        for (OperationID opid : part.operations) {
-        g.insert_node(opid);
-        }
-    }
+        g.clear();
 
-    for (const auto & [partId, part] : state.parts) {
-        for (size_t i = 1; i < part.operations.size(); ++i) {
-        OperationID prev = part.operations[i-1];
-        OperationID cur = part.operations[i];
-        int u = g.opid_to_index[prev];
-        int v = g.opid_to_index[cur];
-        g.insert_arc(g.nodes[u].get(), g.nodes[v].get());
+        for (const auto & [partId, part] : state.parts) {
+            for (OperationID opid : part.operations) {
+            g.insert_node(opid);
+            }
         }
-    }
+
+        for (const auto & [partId, part] : state.parts) {
+            for (size_t i = 1; i < part.operations.size(); ++i) {
+            OperationID prev = part.operations[i-1];
+            OperationID cur = part.operations[i];
+            int u = g.opid_to_index[prev];
+            int v = g.opid_to_index[cur];
+            g.insert_arc(g.nodes[u].get(), g.nodes[v].get());
+            }
+        }
     }
 
     // Schedule using ProductionState to determine durations and compatible machines

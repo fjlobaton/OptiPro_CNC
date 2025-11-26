@@ -104,6 +104,50 @@ void renderGui(StateSnapshot snapshot)
     
     if (ImGui::BeginTabBar("PartQueueTabs")) 
     {
+        //Visualizer Jobs
+         if (ImGui::BeginTabItem("JOBS")) 
+        {
+            if (ImGui::BeginTable("PendingJobs", 2, ImGuiTableFlags_Borders)) 
+            {
+                ImGui::TableSetupColumn("Job ID");
+                ImGui::TableSetupColumn("Priority");
+                ImGui::TableHeadersRow();
+
+                struct PartData { int id; const char* Priority; };
+                for(auto i = snapshot.productionState.jobs.begin(); i != snapshot.productionState.jobs.end(); ++snapshot.productionState.jobs.begin())
+                {
+                    const auto& job = i->second;
+                    
+                    ImGui::TableNextRow();
+                    ImGui::TableSetColumnIndex(0); ImGui::Text("%d", job.jobId);
+                    ImGui::TableSetColumnIndex(1); 
+                    switch(job.priority)
+                    {
+                        case Priority::low:
+                            ImGui::Text("Low");
+                            break;
+                        case Priority::normal:
+                            ImGui::Text("Medium");
+                            break;
+                        case Priority::urgent:
+                            ImGui::Text("High");
+                            break;
+                        default:
+                            ImGui::Text("Unknown");
+                            break;
+                    }
+                    ++i;
+                    
+                        
+                    
+                }
+                
+                
+
+                ImGui::EndTable();
+            }
+            ImGui::EndTabItem();
+        }
         if (ImGui::BeginTabItem("Pending")) 
         {
             if (ImGui::BeginTable("PendingParts", 4, ImGuiTableFlags_Borders)) 
@@ -159,7 +203,9 @@ void renderGui(StateSnapshot snapshot)
     ImGui::End();
     ImGui::Begin("SnapshotCounter");
 
+    // ImGui::Text("snapshot counter: %d", (snapshot.productionState.count*10));
     ImGui::Text("snapshot counter: %d", snapshot.productionState.count);
+    
     ImGui::End();
 
 }

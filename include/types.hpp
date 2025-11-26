@@ -80,6 +80,8 @@ struct Job {
     std::chrono::system_clock::time_point createdTime;
     std::chrono::system_clock::time_point startedTime;
     std::chrono::system_clock::time_point finishedTime;
+    bool initialized = false;
+    State state = State::pending;
 };
 
 struct Part {
@@ -98,6 +100,7 @@ struct Operation {
     uint32_t machineTime;
     MachineType requiredMachine;
     std::set<MachineSpecs> requiredMachineSpces;
+    State state = State::pending;
     bool completed = false;
 
 };
