@@ -64,17 +64,17 @@ public:
     void runOptimizeNow() {
         optimizeOnce();
     }
-   
+
     //VELOCIDAD DE PRODUCCION
      void setTimerMultiplier(double multiplier) {
         timer_multiplier_ = multiplier;
     }
      double getTimerMultiplier() const {
         return timer_multiplier_;
-    }  
+    }
 
 
-    // Return a copy of the latest schedule 
+    // Return a copy of the latest schedule
     std::vector<OptiProSimple::ScheduledOp> getCurrentSchedule() {
         std::lock_guard<std::mutex> lk(schedule_mutex_);
         return current_schedule_;
@@ -283,9 +283,9 @@ int jobs_size_mem = 0;
                 // advance processing by tickPeriod, inject random failures, optimize and publish snapshot
                 double dt = std::chrono::duration<double>(tickPeriod_).count();
                 //Optimze One
-                   
+
                     //Ver si las maquina fallaron, si es asi replanificar.
-                  
+
 
                 // Advance processing
                     //Ver si Una operacion se completo
@@ -296,7 +296,7 @@ int jobs_size_mem = 0;
                 //Publish snapshot
                     //Pasarle el Frame al GUI
 
-                
+
                 advanceProcessing(dt);
                 monitorAndInjectFailures();
                 optimizeOnce();
@@ -368,7 +368,7 @@ int jobs_size_mem = 0;
                 std::cout << "Engine: detected machine " << i->first << " in error; invoking replan\n";
             }
         }
-        
+
             //NUEVO JOB
             if (jobs_size_mem != state_.jobs.size())
             {
@@ -409,20 +409,20 @@ int jobs_size_mem = 0;
                     for(auto part : job.parts){
                         part.first;//ID DE PARTES ORDENADA
                         for(auto ope : state_.operations){
-                           
+
                             if(part.first ==  ope.second.partId && ope.second.state == State::pending ){
                                 //Con mi lista ordenada de jobs, asignar las operaciones a las maquinas
                                 assignOperationToMachine(ope.second.id);
-                                ope.second.state = State::pending; 
+                                ope.second.state = State::pending;
                             }
                         }
-                        
+
                     }
                 }
                 jobs_size_mem = state_.jobs.size();
-                
+
             }
-        
+
 }
 
     void publishSnashot() {
@@ -575,7 +575,7 @@ int jobs_size_mem = 0;
     void assignOperationToMachine(OperationID opid) {
 
 
-       
+
 
 
         auto itop = state_.operations.find(opid);
@@ -591,10 +591,10 @@ int jobs_size_mem = 0;
                 }
             }
             if (!ok) continue;
-            
-            if (m.status != MachineState::error){ 
+
+            if (m.status != MachineState::error){
                 m.status = MachineState::running;
-                state_.operations[opid].state = State::running; 
+                state_.operations[opid].state = State::running;
                 m.operations.push(opid);
             }
             return;

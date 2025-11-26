@@ -36,6 +36,33 @@ inline std::string TimeToString(const std::chrono::system_clock::time_point& tp)
     ss << std::put_time(std::localtime(&time_t_val), "%H:%M:%S"); // Short format for tables
     return ss.str();
 }
+
+//function that gets a map and returns the count of each status of machines
+inline std::tuple<int, int, int, int> GetMachineStatusOverviewAmount(const std::map<MachineID, Machine>& machines)
+{
+    int idle = 0, running = 0, stopped = 0, error = 0;
+    for (const auto& [id, machine] : machines)
+    {
+        switch (machine.status)
+        {
+        case MachineState::error:
+            ++error;
+            continue;
+        case MachineState::running:
+            ++running;
+            continue;
+        case MachineState::idle:
+            ++idle;
+            continue;
+        case MachineState::stopped:
+            ++stopped;
+            continue;
+        default:
+            continue;
+        }
+    }
+    return {idle, running, stopped , error};
+}
 // --- Main Render Function ---
 inline void RenderPriorityJobsUI(const ProductionState& state){
 
@@ -44,6 +71,10 @@ inline void RenderPriorityJobsUI(const ProductionState& state){
 inline void RenderProductionStateUI(const ProductionState& state) {
     if (ImGui::BeginTabBar("ProductionStateTabs")) {
 
+inline void RenderProductionStateUI(const ProductionState& state)
+{
+    if (ImGui::BeginTabBar("ProductionStateTabs"))
+    {
         // -------------------------
         // TAB 1: MACHINES (With Tool Dropdown)
         // -------------------------

@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
     // Setup Platform/Renderer backends
     ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
     ImGui_ImplOpenGL3_Init(glsl_version);
-     
+
 
     // Main loop
     bool done = false;
@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
             latestState = std::move(*snap);
         }
 
-       
+
 
 
         // Start the Dear ImGui frame
@@ -114,10 +114,7 @@ int main(int argc, char* argv[]) {
         ImGui_ImplSDL2_NewFrame();
         ImGui::NewFrame();
         ImGui::ShowDemoWindow();
-        // RenderPriorityJobsUI()
-        ImGui::Begin("Tools");
         RenderProductionStateUI(latestState.productionState);
-        ImGui::End();
         renderGui(latestState);
         manager.renderGui(latestState);
 
