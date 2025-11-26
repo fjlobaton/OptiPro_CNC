@@ -89,6 +89,7 @@ struct Part {
     std::vector<OperationID> operations;
     SizeXYZ partSize; //in mm
     uint32_t baseMachineTime;
+    State state = State::pending;
 };
 struct Operation {
     OperationID id;

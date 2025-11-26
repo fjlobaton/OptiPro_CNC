@@ -206,11 +206,11 @@ private:
                 m.operations.pop();  
                 
                 machine_current_op_[mid] = next;
-                const auto &op = state_.operations[next];
+                auto &op = state_.operations[next];
                 double duration = static_cast<double>(op.totalTime);
                 machine_remaining_time_[mid] = duration;
                 m.status = MachineState::running;
-                
+                 state_.operations[op.id].state = State::running;
                 std::cout << "Máquina " << mid << " comenzó operación " << next << " (duración: " << duration << "s)" << std::endl;
             }
         }
@@ -226,7 +226,42 @@ private:
 
         if (rem <= 0.0) {
             std::cout << "Máquina " << mid << " COMPLETÓ operación " << curOp << std::endl;
-            
+
+
+            state_.operations[curOp].state = State::completed;
+            auto part_id = state_.operations[curOp].partId;
+            state_.parts[part_id].operations;
+            if(state_.operations[curOp].state == State::completed){
+                //verificar las operations
+                bool part_completed = false;
+                for (auto operation :  state_.parts[part_id].operations)
+                {
+                    part_completed = state_.operations[operation].state == State::completed;
+
+                }
+                if(part_completed){
+                    state_.parts[part_id].state = State::completed;
+                }
+
+
+                for (auto job : state_.jobs)
+                {
+                    bool job_completed = false;
+
+                    bool job_in_part = false;
+                    for(auto part : job.second.parts){
+                        job_completed = state_.parts[part.first].state == State::completed;
+                        job_in_part = part.first == part_id;
+                    }
+                    
+                    if(job_in_part && job_completed){
+                        job.second.state = State::completed;
+                           
+                    }
+                }
+ 
+            }
+
             
             auto itop = state_.operations.find(curOp);
             if (itop != state_.operations.end()) {
@@ -245,6 +280,7 @@ private:
                 m.status = MachineState::running;
                 
                 std::cout << "Máquina " << mid << " comenzó operación " << next << " (cola restante: " << m.operations.size() << ")" << std::endl;
+                 state_.operations[curOp].state = State::running;
             } else {
                 
                 if (m.status != MachineState::error) {
@@ -414,6 +450,9 @@ int jobs_size_mem = 0;
                                 //Con mi lista ordenada de jobs, asignar las operaciones a las maquinas
                                 assignOperationToMachine(ope.second.id);
                                 ope.second.state = State::pending;
+                                if(job.state == State::pending){
+                                    job.state = State::running;
+                                }
                             }
                         }
 
@@ -594,9 +633,8 @@ int jobs_size_mem = 0;
 
             if (m.status != MachineState::error){
                 m.status = MachineState::running;
-                state_.operations[opid].state = State::running;
                 m.operations.push(opid);
-            }
+            }            
             return;
         }
     }
