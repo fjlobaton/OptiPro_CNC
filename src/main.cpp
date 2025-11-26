@@ -19,9 +19,9 @@ int main(int argc, char* argv[]) {
     
 
     //initialize engine with random tools and machines using commands
-    engine.sendCommand(GenerateRandomToolsCommand{20});
-    engine.sendCommand(GenerateRandomMachinesCommand{4});
-    engine.sendCommand(GenerateRandomJobsCommand{1,2});
+    //engine.sendCommand(GenerateRandomToolsCommand{20});
+    //engine.sendCommand(GenerateRandomMachinesCommand{4});
+    //engine.sendCommand(GenerateRandomJobsCommand{1,2});
     engine.start();
 
 
@@ -114,8 +114,8 @@ int main(int argc, char* argv[]) {
         ImGui_ImplSDL2_NewFrame();
         ImGui::NewFrame();
         ImGui::ShowDemoWindow();
-        RenderProductionStateUI(latestState.productionState);
-        renderGui(latestState);
+        //RenderProductionStateUI(latestState.productionState);
+        //renderGui(latestState);
         manager.renderGui(latestState);
 
 

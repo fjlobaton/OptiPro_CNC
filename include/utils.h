@@ -68,9 +68,6 @@ inline void RenderPriorityJobsUI(const ProductionState& state){
 
 }
 
-inline void RenderProductionStateUI(const ProductionState& state) {
-    if (ImGui::BeginTabBar("ProductionStateTabs")) {
-
 inline void RenderProductionStateUI(const ProductionState& state)
 {
     if (ImGui::BeginTabBar("ProductionStateTabs"))
