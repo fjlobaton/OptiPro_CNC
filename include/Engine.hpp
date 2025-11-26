@@ -224,7 +224,8 @@ private:
                 double duration = static_cast<double>(op.totalTime);
                 machine_remaining_time_[mid] = duration;
                 m.status = MachineState::running;
-                 state_.operations[op.id].state = State::running;
+                state_.operations[op.id].state = State::running;
+
                 std::cout << "Máquina " << mid << " comenzó operación " << next << " (duración: " << duration << "s)" << std::endl;
             }
         }
@@ -616,10 +617,7 @@ int jobs_size_mem = 0;
         {
             state_.operations[op.id] = std::move(op);
         }
-        //No assign ops created for this part
-        // for (const auto &op : ops) {
-        //     assignOperationToMachine(op.id);
-        // }
+
         ++nextPartId_;
         //std::cout << "after part generation" << std::endl;
         //std::cout << "part id" << nextPartId_ << " opid:" << nextOperationId_ << std::endl;

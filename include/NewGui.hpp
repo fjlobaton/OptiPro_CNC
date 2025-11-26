@@ -166,7 +166,7 @@ public:
             MachineGenButton(snapshot);
 
             ImGui::Separator();
-            if (ImGui::BeginTable("TableMachines", 7,
+            if (ImGui::BeginTable("TableMachines", 6,
                                   ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable))
             {
                 ImGui::TableSetupColumn("ID / Tools"); // Updated header
@@ -175,7 +175,6 @@ public:
                 ImGui::TableSetupColumn("Size");
                 ImGui::TableSetupColumn("Work Env (mm)");
                 ImGui::TableSetupColumn("Queue");
-                ImGui::TableSetupColumn("Current Op Remaining Time");
                 ImGui::TableHeadersRow();
 
                 for (const auto& [id, machine] : snapshot.productionState.machines)
@@ -205,9 +204,6 @@ public:
 
                     ImGui::TableSetColumnIndex(5);
                     ImGui::Text("%zu ops", machine.operations.size());
-
-                    ImGui::TableSetColumnIndex(6);
-                    ImGui::Text("%s" , machine.
 
                     // If Tree Node is Open -> Render Nested Tools
                     if (open)

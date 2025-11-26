@@ -19,9 +19,6 @@ int main(int argc, char* argv[]) {
     
 
     //initialize engine with random tools and machines using commands
-    engine.sendCommand(GenerateRandomToolsCommand{20});
-    engine.sendCommand(GenerateRandomMachinesCommand{4});
-    engine.sendCommand(GenerateRandomJobsCommand{1,2});
     engine.start();
 
 
@@ -76,7 +73,6 @@ int main(int argc, char* argv[]) {
     style.ScaleAllSizes(main_scale);        // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)
     style.FontScaleDpi = main_scale;        // Set initial font scale. (using io.ConfigDpiScaleFonts=true makes this unnecessary. We leave both here for documentation purpose)
 
-    //io.Fonts->AddFontFromFileTTF("/usr/share/fonts/google-noto/NotoSans-Medium.ttf");
     // Setup Platform/Renderer backends
     ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
     ImGui_ImplOpenGL3_Init(glsl_version);
@@ -114,8 +110,6 @@ int main(int argc, char* argv[]) {
         ImGui_ImplSDL2_NewFrame();
         ImGui::NewFrame();
         ImGui::ShowDemoWindow();
-        //RenderProductionStateUI(latestState.productionState);
-        //renderGui(latestState);
         manager.renderGui(latestState);
 
 
