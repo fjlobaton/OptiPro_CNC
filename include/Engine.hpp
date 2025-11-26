@@ -111,14 +111,28 @@ public:
     }
 
     // Simulate a machine failure, mark machine error and replan
+
     void simulateMachineFailure(MachineID mid) {
-        
+
+
+
+                
         if (failed_handled_.find(mid) != failed_handled_.end()) return;
         auto it = state_.machines.find(mid);
         if (it == state_.machines.end()) return;
         
         it->second.status = MachineState::error;
         failed_handled_.insert(mid);
+        
+        
+        std::thread([this, mid]() {
+            std::this_thread::sleep_for(std::chrono::seconds(15));
+
+            // Después de 15s → Recuperar la máquina
+            state_.machines[mid].status = MachineState::running;
+
+        }).detach();
+
 
         
         std::vector<OperationID> toReassign;
@@ -400,8 +414,9 @@ int jobs_size_mem = 0;
             if(i->second.status == MachineState::error)
             {
                 //REPLANIFICAR
-                // simulateMachineFailure(i->first);
-                std::cout << "Engine: detected machine " << i->first << " in error; invoking replan\n";
+                simulateMachineFailure(i->first);
+
+                // std::cout << "Engine: detected machine " << i->first << " in error; invoking replan\n";
             }
         }
 
