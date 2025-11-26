@@ -78,6 +78,10 @@ cmake --build .
 ## Running
 
 ### Linux/macOS
+## if running under WSL2 the next command needs to be executed so SDL2 bindings target X11
+```bash
+export SDL_VIDEODRIVER=x11
+```
 
 ```bash
 ./OptiPro_CNC
