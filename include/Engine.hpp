@@ -267,13 +267,13 @@ private:
                         job_completed = state_.parts[part.first].state == State::completed;
                         job_in_part = part.first == part_id;
                     }
-                    
+
                     if(job_in_part && job_completed){
                         job.second.state = State::completed;
-                           
+
                     }
                 }
- 
+
             }
 
             
@@ -649,7 +649,7 @@ int jobs_size_mem = 0;
             if (m.status != MachineState::error){
                 m.status = MachineState::running;
                 m.operations.push(opid);
-            }            
+            }
             return;
         }
     }

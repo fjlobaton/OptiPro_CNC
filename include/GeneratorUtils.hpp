@@ -283,7 +283,7 @@ inline std::tuple<Job , std::map<PartID, Part> , std::map<OperationID, Operation
     //assing id
     job.jobId = nextJobId;
     //assign job priority
-    job.priority = getRandomEnum<Priority>(4, rng);
+    job.priority = getRandomEnum<Priority>(3, rng);
     //created time
     job.createdTime = std::chrono::system_clock::now();
 

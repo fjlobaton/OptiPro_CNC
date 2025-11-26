@@ -226,6 +226,22 @@ public:
                     ImGui::Text("%u", op.quantity);
                     ImGui::TableSetColumnIndex(4);
                     ImGui::Text("%u ms", op.totalTime);
+                    ImGui::TableSetColumnIndex(5);
+                    switch (op.state)
+                    {
+                    case State::running:
+                        ImGui::TextColored(ImVec4(0, 1, 0, 1), "%s" , toString(op.state).data());
+                        continue;
+                    case State::completed:
+                        ImGui::TextColored(ImVec4(1, 0, 0, 1), "%s" , toString(op.state).data());
+                        continue;
+                    default:
+                        ImGui::Text("%s" , toString(op.state).data());
+                        continue;
+
+                    }
+
+
                 }
                 ImGui::EndTable();
             }
@@ -237,11 +253,56 @@ public:
     {
         ImGui::Begin("Parts_window", nullptr, window_flags);
         {
-            ImGui::Text("snapshot %d", snapshot.productionState.count);
-        }
-        ImGui::End();
-    }
+            if (ImGui::BeginTable("TableParts", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable)) {
+                ImGui::TableSetupColumn("Part ID / Operations");
+                ImGui::TableSetupColumn("Size (mm)");
+                ImGui::TableSetupColumn("Ops Count");
+                ImGui::TableSetupColumn("Base Time");
+                ImGui::TableHeadersRow();
 
+                for (const auto& [id, part] : snapshot.productionState.parts) {
+                    ImGui::TableNextRow();
+
+                    ImGui::TableSetColumnIndex(0);
+                    bool open = ImGui::TreeNode((void*)(intptr_t)part.id, "Part %d", part.id);
+
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::Text("%.1f x %.1f x %.1f", part.partSize.X, part.partSize.Y, part.partSize.Z);
+
+                    ImGui::TableSetColumnIndex(2);
+                    ImGui::Text("%zu", part.operations.size());
+
+                    ImGui::TableSetColumnIndex(3);
+                    ImGui::Text("%u ms", part.baseMachineTime);
+
+                    if (open) {
+                        if (part.operations.empty()) {
+                            ImGui::TableNextRow();
+                            ImGui::TableSetColumnIndex(0);
+                            ImGui::TextDisabled("  (No operations)");
+                        } else {
+                            for (int opId : part.operations) {
+                                ImGui::TableNextRow();
+                                ImGui::TableSetColumnIndex(0);
+
+                                // Lookup op details
+                                std::string opDesc = "Unknown Op";
+                                if (snapshot.productionState.operations.count(opId)) {
+                                    const auto& op = snapshot.productionState.operations.at(opId);
+                                    opDesc = std::string(toString(op.requiredMachine));
+                                }
+
+                                ImGui::Text("  Op %d: %s", opId, opDesc.c_str());
+                            }
+                        }
+                        ImGui::TreePop();
+                    }
+                }
+                ImGui::EndTable();
+            }
+            ImGui::End();
+        }
+    }
     void RenderControlGui(const StateSnapshot& snapshot) const
     {
         ImGui::Begin("Control Panel");
