@@ -116,15 +116,15 @@ public:
 
 
 
-                
+
         if (failed_handled_.find(mid) != failed_handled_.end()) return;
         auto it = state_.machines.find(mid);
         if (it == state_.machines.end()) return;
         
         it->second.status = MachineState::error;
         failed_handled_.insert(mid);
-        
-        
+
+
         std::thread([this, mid]() {
             std::this_thread::sleep_for(std::chrono::seconds(15));
 
@@ -134,7 +134,7 @@ public:
         }).detach();
 
 
-        
+
         std::vector<OperationID> toReassign;
         auto itcur = machine_current_op_.find(mid);
         if (itcur != machine_current_op_.end()) {

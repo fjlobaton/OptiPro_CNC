@@ -12,16 +12,16 @@
 #include "NewGui.hpp"
 int main(int argc, char* argv[]) {
 
-    Engine engine(std::chrono::milliseconds{1000});
+    Engine engine(std::chrono::milliseconds{250});
     StateSnapshot latestState;
 
     GuiManager manager(engine);
     
 
     //initialize engine with random tools and machines using commands
-    //engine.sendCommand(GenerateRandomToolsCommand{20});
-    //engine.sendCommand(GenerateRandomMachinesCommand{4});
-    //engine.sendCommand(GenerateRandomJobsCommand{1,2});
+    engine.sendCommand(GenerateRandomToolsCommand{20});
+    engine.sendCommand(GenerateRandomMachinesCommand{4});
+    engine.sendCommand(GenerateRandomJobsCommand{1,2});
     engine.start();
 
 

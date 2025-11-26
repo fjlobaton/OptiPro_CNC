@@ -8,7 +8,6 @@
 class GuiManager
 {
 private:
-
     Engine& engine_;
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar |
         ImGuiWindowFlags_NoCollapse |
@@ -47,7 +46,7 @@ public:
     {
         ImGui::Begin("Jobs_window", nullptr, window_flags);
         {
-            if (ImGui::BeginTable("TableJobs", 5,
+            if (ImGui::BeginTable("TableJobs", 7,
                                   ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable))
             {
                 ImGui::TableSetupColumn("Job ID / Parts");
@@ -55,6 +54,8 @@ public:
                 ImGui::TableSetupColumn("Total Parts");
                 ImGui::TableSetupColumn("Created");
                 ImGui::TableSetupColumn("Started");
+                ImGui::TableSetupColumn("Finished");
+                ImGui::TableSetupColumn("Status");
                 ImGui::TableHeadersRow();
 
                 for (const auto& [id, job] : snapshot.productionState.jobs)
@@ -77,6 +78,27 @@ public:
                     ImGui::TableSetColumnIndex(4);
                     ImGui::Text("%s", TimeToString(job.startedTime).c_str());
 
+                    ImGui::TableSetColumnIndex(5);
+                    ImGui::Text("%s", TimeToString(job.finishedTime).c_str());
+
+                    ImGui::TableSetColumnIndex(6);
+                    if (job.state == State::running)
+                    {
+                        ImGui::TextColored(ImVec4(0, 1, 0, 1), "%s", toString(job.state).data());
+                    }
+                    else if (job.state == State::completed)
+                    {
+                        ImGui::TextColored(ImVec4(1, 0, 0, 1), "%s", toString(job.state).data());
+                    }
+                    else if (job.state == State::stopped)
+                    {
+                        ImGui::TextColored(ImVec4(1, 0, 0, 1), "%s", toString(job.state).data());
+                    }
+                    else
+                    {
+                        ImGui::Text("%s", toString(job.state).data());
+                    }
+
                     if (open)
                     {
                         if (job.parts.empty())
@@ -93,6 +115,25 @@ public:
                                 ImGui::TableSetColumnIndex(0);
                                 // Look up part info if needed, here we just show ID and Qty
                                 ImGui::Text("  Part %d (x%u)", partId, qty);
+
+                                ImGui::TableSetColumnIndex(6);
+                                auto part = snapshot.productionState.parts.at(partId);
+                                if (part.state == State::running)
+                                {
+                                    ImGui::TextColored(ImVec4(0, 1, 0, 1), "%s", toString(part.state).data());
+                                }
+                                else if (part.state == State::completed)
+                                {
+                                    ImGui::TextColored(ImVec4(1, 0, 0, 1), "%s", toString(part.state).data());
+                                }
+                                else if (part.state == State::stopped)
+                                {
+                                    ImGui::TextColored(ImVec4(1, 0, 0, 1), "%s", toString(part.state).data());
+                                }
+                                else
+                                {
+                                    ImGui::Text("%s", toString(part.state).data());
+                                }
                             }
                         }
                         ImGui::TreePop();
@@ -125,7 +166,7 @@ public:
             MachineGenButton(snapshot);
 
             ImGui::Separator();
-            if (ImGui::BeginTable("TableMachines", 6,
+            if (ImGui::BeginTable("TableMachines", 7,
                                   ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable))
             {
                 ImGui::TableSetupColumn("ID / Tools"); // Updated header
@@ -134,6 +175,7 @@ public:
                 ImGui::TableSetupColumn("Size");
                 ImGui::TableSetupColumn("Work Env (mm)");
                 ImGui::TableSetupColumn("Queue");
+                ImGui::TableSetupColumn("Current Op Remaining Time");
                 ImGui::TableHeadersRow();
 
                 for (const auto& [id, machine] : snapshot.productionState.machines)
@@ -163,6 +205,9 @@ public:
 
                     ImGui::TableSetColumnIndex(5);
                     ImGui::Text("%zu ops", machine.operations.size());
+
+                    ImGui::TableSetColumnIndex(6);
+                    ImGui::Text("%s" , machine.
 
                     // If Tree Node is Open -> Render Nested Tools
                     if (open)
@@ -230,18 +275,18 @@ public:
                     switch (op.state)
                     {
                     case State::running:
-                        ImGui::TextColored(ImVec4(0, 1, 0, 1), "%s" , toString(op.state).data());
+                        ImGui::TextColored(ImVec4(0, 1, 0, 1), "%s", toString(op.state).data());
                         continue;
                     case State::completed:
-                        ImGui::TextColored(ImVec4(1, 0, 0, 1), "%s" , toString(op.state).data());
+                        ImGui::TextColored(ImVec4(1, 0, 0, 1), "%s", toString(op.state).data());
+                        continue;
+                    case State::stopped:
+                        ImGui::TextColored(ImVec4(1, 0, 0, 1), "%s", toString(op.state).data());
                         continue;
                     default:
-                        ImGui::Text("%s" , toString(op.state).data());
+                        ImGui::Text("%s", toString(op.state).data());
                         continue;
-
                     }
-
-
                 }
                 ImGui::EndTable();
             }
@@ -253,14 +298,17 @@ public:
     {
         ImGui::Begin("Parts_window", nullptr, window_flags);
         {
-            if (ImGui::BeginTable("TableParts", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable)) {
+            if (ImGui::BeginTable("TableParts", 4,
+                                  ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable))
+            {
                 ImGui::TableSetupColumn("Part ID / Operations");
                 ImGui::TableSetupColumn("Size (mm)");
                 ImGui::TableSetupColumn("Ops Count");
                 ImGui::TableSetupColumn("Base Time");
                 ImGui::TableHeadersRow();
 
-                for (const auto& [id, part] : snapshot.productionState.parts) {
+                for (const auto& [id, part] : snapshot.productionState.parts)
+                {
                     ImGui::TableNextRow();
 
                     ImGui::TableSetColumnIndex(0);
@@ -275,19 +323,25 @@ public:
                     ImGui::TableSetColumnIndex(3);
                     ImGui::Text("%u ms", part.baseMachineTime);
 
-                    if (open) {
-                        if (part.operations.empty()) {
+                    if (open)
+                    {
+                        if (part.operations.empty())
+                        {
                             ImGui::TableNextRow();
                             ImGui::TableSetColumnIndex(0);
                             ImGui::TextDisabled("  (No operations)");
-                        } else {
-                            for (int opId : part.operations) {
+                        }
+                        else
+                        {
+                            for (int opId : part.operations)
+                            {
                                 ImGui::TableNextRow();
                                 ImGui::TableSetColumnIndex(0);
 
                                 // Lookup op details
                                 std::string opDesc = "Unknown Op";
-                                if (snapshot.productionState.operations.count(opId)) {
+                                if (snapshot.productionState.operations.count(opId))
+                                {
                                     const auto& op = snapshot.productionState.operations.at(opId);
                                     opDesc = std::string(toString(op.requiredMachine));
                                 }
@@ -303,6 +357,7 @@ public:
             ImGui::End();
         }
     }
+
     void RenderControlGui(const StateSnapshot& snapshot) const
     {
         ImGui::Begin("Control Panel");
@@ -398,7 +453,7 @@ public:
 
     void JobGenButton(const StateSnapshot& snapshot) const
     {
-        static int job_gen_amount_min = 0 , job_gen_amount_max = 256;
+        static int job_gen_amount_min = 0, job_gen_amount_max = 256;
 
         float full = ImGui::GetContentRegionAvail().x;
         float spacing = ImGui::GetStyle().ItemSpacing.x;
@@ -418,7 +473,7 @@ public:
         ImGui::AlignTextToFramePadding();
         ImGui::Text("Job Gen Max");
         ImGui::SetNextItemWidth(width);
-        ImGui::SliderInt("##Job Gen max" , &job_gen_amount_max, job_gen_amount_min, 512);
+        ImGui::SliderInt("##Job Gen max", &job_gen_amount_max, job_gen_amount_min, 512);
         ImGui::EndGroup();
 
         bool create_jobs_disabled = snapshot.productionState.machines.size() == 0;
@@ -430,5 +485,4 @@ public:
         }
         if (create_jobs_disabled) ImGui::EndDisabled();
     }
-
 };
