@@ -78,9 +78,20 @@ cmake --build .
 ## Running
 
 ### Linux/macOS
-## if running under WSL2 the next command needs to be executed so SDL2 bindings target X11
+### if running under WSL2 the next command needs to be executed so SDL2 bindings target X11
 ```bash
 export SDL_VIDEODRIVER=x11
+```
+### Delete lines 330-335 in /OptiPro_CNC/include/Engine.hpp if running under Wsl as there is a breaking bug reported
+
+```c
+// lines to delete
+   for (auto [PartId , part] : state_.parts)
+        {
+            if (part.operations.at(curOp))
+            {
+         }
+   }
 ```
 
 ```bash
