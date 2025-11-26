@@ -3,6 +3,7 @@
 #include <string>
 #include <algorithm>
 #include <cstring>
+#include "NewGui.hpp"
 
 void renderGui(StateSnapshot snapshot)
 {
@@ -13,101 +14,86 @@ void renderGui(StateSnapshot snapshot)
 
 
     ImGui::Begin("Machine Dashboard");
-    
+    // calculates from a snapshot
+    const auto &machines_map = snapshot.productionState.machines;
+    int total = (int)machines_map.size();
+    int online = 0, offline = 0, processing = 0;
+    for (const auto &kv : machines_map) {
+        const auto &m = kv.second;
+        if (m.status == MachineState::error) ++offline; else ++online;
+        auto it_rt = snapshot.runtime.find(kv.first);
+        bool has_running = (it_rt != snapshot.runtime.end() && it_rt->second.current_op.has_value());
+        if (has_running || !m.operations.empty()) ++processing;
+    }
+
     ImGui::Columns(4);
-    ImGui::Text("Total: 8");
+    ImGui::Text("Total: %d", total);
     ImGui::NextColumn();
-    ImGui::TextColored(ImVec4(0,1,0,1), "Online: 6");
+    ImGui::TextColored(ImVec4(0,1,0,1), "Online: %d", online);
     ImGui::NextColumn();
-    ImGui::TextColored(ImVec4(1,1,0,1), "Processing: 3");
+    ImGui::TextColored(ImVec4(1,1,0,1), "Processing: %d", processing);
     ImGui::NextColumn();
-    ImGui::TextColored(ImVec4(1,0,0,1), "Offline: 2");
+    ImGui::TextColored(ImVec4(1,0,0,1), "Offline: %d", offline);
     ImGui::Columns(1);
-    
+
     ImGui::Separator();
 
     static char search[128] = "";
     ImGui::InputText("Search by name", search, IM_ARRAYSIZE(search));
 
-    if (ImGui::BeginTable("Machines", 5, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+    if (ImGui::BeginTable("Machines", 6, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
         ImGui::TableSetupColumn("ID");
         ImGui::TableSetupColumn("Name");
         ImGui::TableSetupColumn("Type");
         ImGui::TableSetupColumn("Status");
+        ImGui::TableSetupColumn("Work Env (mm)");
         ImGui::TableSetupColumn("Queue");
         ImGui::TableHeadersRow();
-        
-        //datos de ejemplo 
-        struct MachineData { int id; const char* name; MachineType type; const char* status; int queue; };
-        static MachineData machines[] = 
-        {
-            {1, "Machine1", MachineType::VMC_3AXIS, "Running", 2},
-            {2, "Machine2", MachineType::VMC_4AXIS, "Idle", 0},
-            {3, "Machine3", MachineType::VMC_5AXIS, "Running", 1},
-            {4, "Machine4", MachineType::LATHE, "Offline", 3},
-            {5, "Machine5", MachineType::LASER_CUTTER, "Running", 1},
-            {6, "Machine6", MachineType::TURN_MILL, "Idle", 0},
-            {7, "Machine7", MachineType::VMC_3AXIS, "Offline", 5},
-            {8, "Machine8", MachineType::PRESS_BREAK, "Idle", 0},
-        };
-        
-        auto icontains = [](const char* hay, const char* needle) -> bool 
-        {
-            if (!needle || !*needle) 
-            {
-                return true;
-            } 
+
+        auto icontains = [](const char* hay, const char* needle) -> bool {
+            if (!needle || !*needle) return true;
             std::string h(hay), n(needle);
             std::transform(h.begin(), h.end(), h.begin(), ::tolower);
             std::transform(n.begin(), n.end(), n.begin(), ::tolower);
             return h.find(n) != std::string::npos;
         };
-        for (const auto& machine : machines) 
-        {
-            if (!icontains(machine.name, search))
-            {
-                continue;
-            }
+
+        for (const auto & [mid, m] : machines_map) {
+            std::string name = std::string("Machine") + std::to_string(mid);
+            if (!icontains(name.c_str(), search)) continue;
 
             ImGui::TableNextRow();
-            
-            ImGui::TableSetColumnIndex(0);
-            ImGui::Text("%d", machine.id);
-            
-            ImGui::TableSetColumnIndex(1);
-            ImGui::Text("%s", machine.name);
-            
-            ImGui::TableSetColumnIndex(2);
-            ImGui::Text("%s", toString(machine.type).data());
-            
-            ImGui::TableSetColumnIndex(3);
+            ImGui::TableSetColumnIndex(0); ImGui::Text("%d", mid);
+            ImGui::TableSetColumnIndex(1); ImGui::Text("%s", name.c_str());
+            ImGui::TableSetColumnIndex(2); ImGui::Text("%s", toString(m.machineType).data());
 
-            // Color 
+            ImGui::TableSetColumnIndex(3);
+            // show status machine data 
             ImVec4 statusColor = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
-            if (strcmp(machine.status, "Running") == 0)
-            {
-                statusColor = ImVec4(0,1,0,1);
-            }
-            else if (strcmp(machine.status, "Offline") == 0) 
-            {
-                statusColor = ImVec4(1,0,0,1);
-            }
-            else if (strcmp(machine.status, "Idle") == 0) 
-            {
-                statusColor = ImVec4(1,1,0,1);
-            }
-            
-            ImGui::TextColored(statusColor, "%s", machine.status);
-            
+            if (m.status == MachineState::error) statusColor = ImVec4(1,0,0,1);
+            else if (m.status == MachineState::idle) statusColor = ImVec4(1,1,0,1);
+            else statusColor = ImVec4(0,1,0,1);
+            ImGui::TextColored(statusColor, "%s", toString(m.status).data());
+
             ImGui::TableSetColumnIndex(4);
-            if (machine.queue > 0) 
-            {
-                ImGui::TextColored(ImVec4(1,0.5f,0,1), "%d parts", machine.queue);
-            } 
-            else 
-            {
-                ImGui::Text("Empty");
+            ImGui::Text("%.0f x %.0f x %.0f", m.workEnvelope.X, m.workEnvelope.Y, m.workEnvelope.Z);
+
+            ImGui::TableSetColumnIndex(5);
+            // snapshot.runtime to know if an operation is running and its remaining time
+            auto it_rt = snapshot.runtime.find(mid);
+            int qsize = (int)m.operations.size();
+            bool running_now = false;
+            double remaining = 0.0;
+            if (it_rt != snapshot.runtime.end() && it_rt->second.current_op.has_value()) {
+                running_now = true;
+                remaining = it_rt->second.remaining_time;
+                qsize += 1;
             }
+            if (qsize > 0) {
+                ImGui::TextColored(ImVec4(1,0.5f,0,1), "%d ops", qsize);
+                if (running_now) ImGui::SameLine(); ImGui::TextDisabled("(%.0fs)", remaining);
+            } else ImGui::Text("Empty");
+            
         }
         ImGui::EndTable();
     }
@@ -118,6 +104,50 @@ void renderGui(StateSnapshot snapshot)
     
     if (ImGui::BeginTabBar("PartQueueTabs")) 
     {
+        //Visualizer Jobs
+         if (ImGui::BeginTabItem("JOBS")) 
+        {
+            if (ImGui::BeginTable("PendingJobs", 2, ImGuiTableFlags_Borders)) 
+            {
+                ImGui::TableSetupColumn("Job ID");
+                ImGui::TableSetupColumn("Priority");
+                ImGui::TableHeadersRow();
+
+                struct PartData { int id; const char* Priority; };
+                for(auto i = snapshot.productionState.jobs.begin(); i != snapshot.productionState.jobs.end(); ++snapshot.productionState.jobs.begin())
+                {
+                    const auto& job = i->second;
+                    
+                    ImGui::TableNextRow();
+                    ImGui::TableSetColumnIndex(0); ImGui::Text("%d", job.jobId);
+                    ImGui::TableSetColumnIndex(1); 
+                    switch(job.priority)
+                    {
+                        case Priority::low:
+                            ImGui::Text("Low");
+                            break;
+                        case Priority::normal:
+                            ImGui::Text("Medium");
+                            break;
+                        case Priority::urgent:
+                            ImGui::Text("High");
+                            break;
+                        default:
+                            ImGui::Text("Unknown");
+                            break;
+                    }
+                    ++i;
+                    
+                        
+                    
+                }
+                
+                
+
+                ImGui::EndTable();
+            }
+            ImGui::EndTabItem();
+        }
         if (ImGui::BeginTabItem("Pending")) 
         {
             if (ImGui::BeginTable("PendingParts", 4, ImGuiTableFlags_Borders)) 
@@ -127,7 +157,7 @@ void renderGui(StateSnapshot snapshot)
                 ImGui::TableSetupColumn("Machine");
                 ImGui::TableSetupColumn("Est. Time");
                 ImGui::TableHeadersRow();
-                
+
                 struct PartData { int id; const char* desc; MachineType machine; float time; };
                 static PartData parts[] = {
                     {101, "Bracket A", MachineType::VMC_3AXIS, 45.5},
@@ -173,7 +203,9 @@ void renderGui(StateSnapshot snapshot)
     ImGui::End();
     ImGui::Begin("SnapshotCounter");
 
+    // ImGui::Text("snapshot counter: %d", (snapshot.productionState.count*10));
     ImGui::Text("snapshot counter: %d", snapshot.productionState.count);
+    
     ImGui::End();
 
 }

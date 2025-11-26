@@ -9,16 +9,23 @@
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_opengl3.h"
 #include "types.hpp"
-int main(int argc, char* argv[]) {
+#include "NewGui.hpp"
 
-    Engine engine(std::chrono::milliseconds{100});
+int main(int argc, char* argv[])
+{
+    Engine engine(std::chrono::milliseconds{250});
     StateSnapshot latestState;
 
-    auto addMachine = AddMachineCommand{};
-    engine.sendCommand(addMachine);
+    GuiManager manager(engine);
+
+
+    //initialize engine with random tools and machines using commands
     engine.start();
+
+
     // Initialize SDL
-    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+    if (SDL_Init(SDL_INIT_VIDEO) != 0)
+    {
         return -1;
     }
 
@@ -35,18 +42,21 @@ int main(int argc, char* argv[]) {
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
     float main_scale = ImGui_ImplSDL2_GetContentScaleForDisplay(0);
-    SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_MAXIMIZED);
-    SDL_Window* window = SDL_CreateWindow("Dear ImGui SDL2+OpenGL3 example", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, (int)(1280 * main_scale), (int)(800 * main_scale), window_flags);
+    SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI
+        | SDL_WINDOW_MAXIMIZED);
+    SDL_Window* window = SDL_CreateWindow("Dear ImGui SDL2+OpenGL3 example", SDL_WINDOWPOS_CENTERED,
+                                          SDL_WINDOWPOS_CENTERED, (int)(1280 * main_scale), (int)(800 * main_scale),
+                                          window_flags);
 
     if (window == nullptr)
     {
-        std::cerr << "Failed to create window"  << SDL_GetError()<< std::endl;
+        std::cerr << "Failed to create window" << SDL_GetError() << std::endl;
         return 1;
     }
     SDL_GLContext gl_context = SDL_GL_CreateContext(window);
     if (gl_context == nullptr)
     {
-        std::cerr << "Failed to create OpenGL context"<< SDL_GetError() << std::endl;
+        std::cerr << "Failed to create OpenGL context" << SDL_GetError() << std::endl;
         return 1;
     }
 
@@ -56,7 +66,8 @@ int main(int argc, char* argv[]) {
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGuiIO& io = ImGui::GetIO();
+    (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
@@ -65,44 +76,52 @@ int main(int argc, char* argv[]) {
     ImGui::StyleColorsDark();
 
     ImGuiStyle& style = ImGui::GetStyle();
-    style.ScaleAllSizes(main_scale);        // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)
-    style.FontScaleDpi = main_scale;        // Set initial font scale. (using io.ConfigDpiScaleFonts=true makes this unnecessary. We leave both here for documentation purpose)
+    style.ScaleAllSizes(main_scale);
+    // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)
+    style.FontScaleDpi = main_scale;
+    // Set initial font scale. (using io.ConfigDpiScaleFonts=true makes this unnecessary. We leave both here for documentation purpose)
 
-    io.Fonts->AddFontFromFileTTF("/usr/share/fonts/google-noto/NotoSans-Medium.ttf");
     // Setup Platform/Renderer backends
     ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
+
     // Main loop
     bool done = false;
-    while (!done) {
+    while (!done)
+    {
         SDL_Event event;
-        while (SDL_PollEvent(&event)) {
+        while (SDL_PollEvent(&event))
+        {
             ImGui_ImplSDL2_ProcessEvent(&event);
-            if (event.type == SDL_QUIT) {
+            if (event.type == SDL_QUIT)
+            {
                 engine.stop();
                 done = true;
             }
 
             if (event.type == SDL_WINDOWEVENT &&
                 event.window.event == SDL_WINDOWEVENT_CLOSE &&
-                event.window.windowID == SDL_GetWindowID(window)) {
+                event.window.windowID == SDL_GetWindowID(window))
+            {
                 done = true;
                 engine.stop();
             }
-
         }
 
-        while (auto snap = engine.pollUpdate()) {
+        while (auto snap = engine.pollUpdate())
+        {
             latestState = std::move(*snap);
         }
+
 
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame();
         ImGui::NewFrame();
         ImGui::ShowDemoWindow();
-        renderGui(latestState);
+        manager.renderGui(latestState);
+
 
         // Rendering
         ImGui::Render();

@@ -1,57 +1,89 @@
 //
 // Created by fjasis on 11/13/25.
 //
+#pragma once
 
-#ifndef OPTIPRO_CNC_COMMANDS_HPP
-#define OPTIPRO_CNC_COMMANDS_HPP
 #include <variant>
 
 #include "types.hpp"
+
 //machine related commands
-struct AddMachineCommand {
+struct AddMachineCommand
+{
     Machine machine;
 };
-struct InitMachinesCommand {
+
+struct InitMachinesCommand
+{
     std::vector<Machine> machines;
 };
-struct GenerateRandomMachinesCommand {
-    int count;
-};
+
 // tool related commands
-struct AddToolCommand {
+struct AddToolCommand
+{
     Tool tool;
 };
 
+struct AddToolsCommand
+{
+    std::vector<Tool> tools;
+};
+
+
 //operation related commands
-struct AddOperationCommand {
+struct AddOperationCommand
+{
     Operation operation;
 };
 
 //part related commands
-struct AddPartCommand {
-    Part part;
+struct AddPartCommand
+{
+    Part& part;
+    std::vector<Operation>& operations;
 };
 
 //job related commands
-struct AddJobCommand {
+struct AddJobCommand
+{
     Job job;
 };
-struct GenerateRandomJobsCommand {
+
+//generator commands
+struct GenerateRandomMachinesCommand
+{
+    int count;
+};
+
+struct GenerateRandomToolsCommand
+{
+    int count;
+};
+
+struct GenerateRandomJobsCommand
+{
     int minJobs;
     int maxJobs;
 };
 
-struct StopEgnineCommand {};
+struct GenerateRandomPartCommand
+{
+};
+
+struct StopEgnineCommand
+{
+};
 
 using CommandVariant = std::variant<
     AddMachineCommand,
-    GenerateRandomMachinesCommand,
     AddJobCommand,
     AddOperationCommand,
     AddPartCommand,
     AddToolCommand,
+    AddToolsCommand,
+    GenerateRandomMachinesCommand,
     GenerateRandomJobsCommand,
+    GenerateRandomToolsCommand,
+    GenerateRandomPartCommand,
     StopEgnineCommand
-    >;
-
-#endif //OPTIPRO_CNC_COMMANDS_HPP
+>;
