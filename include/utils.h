@@ -12,24 +12,28 @@
 template <typename Key, typename Value>
 void printMapCustom(const std::map<Key, Value>& m,
                     const std::string& label = "Map Content",
-                    const std::string& kvSeparator = ": ") {
-
+                    const std::string& kvSeparator = ": ")
+{
     std::cout << "--- " << label << " ---\n";
 
-    if (m.empty()) {
+    if (m.empty())
+    {
         std::cout << "(empty)\n";
         return;
     }
 
-    for (const auto& pair : m) {
+    for (const auto& pair : m)
+    {
         // We use pair.first and pair.second here to be compatible
         // with older C++ standards if needed, though structured binding works too.
         std::cout << pair.first << kvSeparator << pair.second << "\n";
     }
     std::cout << "--------------------\n";
 }
+
 // Helper to format time to string for UI
-inline std::string TimeToString(const std::chrono::system_clock::time_point& tp) {
+inline std::string TimeToString(const std::chrono::system_clock::time_point& tp)
+{
     if (tp.time_since_epoch().count() == 0) return "-";
     auto time_t_val = std::chrono::system_clock::to_time_t(tp);
     std::stringstream ss;
@@ -61,11 +65,12 @@ inline std::tuple<int, int, int, int> GetMachineStatusOverviewAmount(const std::
             continue;
         }
     }
-    return {idle, running, stopped , error};
+    return {idle, running, stopped, error};
 }
-// --- Main Render Function ---
-inline void RenderPriorityJobsUI(const ProductionState& state){
 
+// --- Main Render Function ---
+inline void RenderPriorityJobsUI(const ProductionState& state)
+{
 }
 
 inline void RenderProductionStateUI(const ProductionState& state)
@@ -143,8 +148,11 @@ inline void RenderProductionStateUI(const ProductionState& state)
         // -------------------------
         // TAB 2: JOBS (With Parts Dropdown)
         // -------------------------
-        if (ImGui::BeginTabItem("Jobs")) {
-            if (ImGui::BeginTable("TableJobs", 5, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable)) {
+        if (ImGui::BeginTabItem("Jobs"))
+        {
+            if (ImGui::BeginTable("TableJobs", 5,
+                                  ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable))
+            {
                 ImGui::TableSetupColumn("Job ID / Parts");
                 ImGui::TableSetupColumn("Priority");
                 ImGui::TableSetupColumn("Total Parts");
@@ -152,11 +160,13 @@ inline void RenderProductionStateUI(const ProductionState& state)
                 ImGui::TableSetupColumn("Started");
                 ImGui::TableHeadersRow();
 
-                for (const auto& [id, job] : state.jobs) {
+                for (const auto& [id, job] : state.jobs)
+                {
                     ImGui::TableNextRow();
 
                     ImGui::TableSetColumnIndex(0);
-                    bool open = ImGui::TreeNode(reinterpret_cast<void *>(static_cast<intptr_t>(job.jobId)), "%d", job.jobId);
+                    bool open = ImGui::TreeNode(reinterpret_cast<void*>(static_cast<intptr_t>(job.jobId)), "%d",
+                                                job.jobId);
 
                     ImGui::TableSetColumnIndex(1);
                     ImGui::Text("%s", toString(job.priority).data());
@@ -170,13 +180,18 @@ inline void RenderProductionStateUI(const ProductionState& state)
                     ImGui::TableSetColumnIndex(4);
                     ImGui::Text("%s", TimeToString(job.startedTime).c_str());
 
-                    if (open) {
-                        if (job.parts.empty()) {
+                    if (open)
+                    {
+                        if (job.parts.empty())
+                        {
                             ImGui::TableNextRow();
                             ImGui::TableSetColumnIndex(0);
                             ImGui::TextDisabled("  (No parts)");
-                        } else {
-                            for (const auto& [partId, qty] : job.parts) {
+                        }
+                        else
+                        {
+                            for (const auto& [partId, qty] : job.parts)
+                            {
                                 ImGui::TableNextRow();
                                 ImGui::TableSetColumnIndex(0);
                                 // Look up part info if needed, here we just show ID and Qty
@@ -194,15 +209,19 @@ inline void RenderProductionStateUI(const ProductionState& state)
         // -------------------------
         // TAB 3: PARTS (With Operations Dropdown)
         // -------------------------
-        if (ImGui::BeginTabItem("Parts")) {
-            if (ImGui::BeginTable("TableParts", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable)) {
+        if (ImGui::BeginTabItem("Parts"))
+        {
+            if (ImGui::BeginTable("TableParts", 4,
+                                  ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable))
+            {
                 ImGui::TableSetupColumn("Part ID / Operations");
                 ImGui::TableSetupColumn("Size (mm)");
                 ImGui::TableSetupColumn("Ops Count");
                 ImGui::TableSetupColumn("Base Time");
                 ImGui::TableHeadersRow();
 
-                for (const auto& [id, part] : state.parts) {
+                for (const auto& [id, part] : state.parts)
+                {
                     ImGui::TableNextRow();
 
                     ImGui::TableSetColumnIndex(0);
@@ -217,19 +236,25 @@ inline void RenderProductionStateUI(const ProductionState& state)
                     ImGui::TableSetColumnIndex(3);
                     ImGui::Text("%u ms", part.baseMachineTime);
 
-                    if (open) {
-                        if (part.operations.empty()) {
+                    if (open)
+                    {
+                        if (part.operations.empty())
+                        {
                             ImGui::TableNextRow();
                             ImGui::TableSetColumnIndex(0);
                             ImGui::TextDisabled("  (No operations)");
-                        } else {
-                            for (int opId : part.operations) {
+                        }
+                        else
+                        {
+                            for (int opId : part.operations)
+                            {
                                 ImGui::TableNextRow();
                                 ImGui::TableSetColumnIndex(0);
 
                                 // Lookup op details
                                 std::string opDesc = "Unknown Op";
-                                if (state.operations.count(opId)) {
+                                if (state.operations.count(opId))
+                                {
                                     const auto& op = state.operations.at(opId);
                                     opDesc = std::string(toString(op.requiredMachine));
                                 }
@@ -249,34 +274,58 @@ inline void RenderProductionStateUI(const ProductionState& state)
         // TAB 4 & 5: TOOLS / OPS (Standard Tables)
         // -------------------------
         // (Keep the previous implementation for Tools and Operations tabs here)
-        if (ImGui::BeginTabItem("Tools")) {
-             if (ImGui::BeginTable("TableTools", 5, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
-                ImGui::TableSetupColumn("ID"); ImGui::TableSetupColumn("Name"); ImGui::TableSetupColumn("Life"); ImGui::TableSetupColumn("Max"); ImGui::TableSetupColumn("Bar");
+        if (ImGui::BeginTabItem("Tools"))
+        {
+            if (ImGui::BeginTable("TableTools", 5, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
+            {
+                ImGui::TableSetupColumn("ID");
+                ImGui::TableSetupColumn("Name");
+                ImGui::TableSetupColumn("Life");
+                ImGui::TableSetupColumn("Max");
+                ImGui::TableSetupColumn("Bar");
                 ImGui::TableHeadersRow();
-                for (const auto& [id, tool] : state.tools) {
+                for (const auto& [id, tool] : state.tools)
+                {
                     ImGui::TableNextRow();
-                    ImGui::TableSetColumnIndex(0); ImGui::Text("%d", tool.toolId);
-                    ImGui::TableSetColumnIndex(1); ImGui::Text("%s", tool.name.data());
-                    ImGui::TableSetColumnIndex(2); ImGui::Text("%d", tool.currentToolLife);
-                    ImGui::TableSetColumnIndex(3); ImGui::Text("%d", tool.maxToolLife);
-                    ImGui::TableSetColumnIndex(4); ImGui::ProgressBar(static_cast<float>(tool.currentToolLife) / tool.maxToolLife, ImVec2(-1, 0));
+                    ImGui::TableSetColumnIndex(0);
+                    ImGui::Text("%d", tool.toolId);
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::Text("%s", tool.name.data());
+                    ImGui::TableSetColumnIndex(2);
+                    ImGui::Text("%d", tool.currentToolLife);
+                    ImGui::TableSetColumnIndex(3);
+                    ImGui::Text("%d", tool.maxToolLife);
+                    ImGui::TableSetColumnIndex(4);
+                    ImGui::ProgressBar(static_cast<float>(tool.currentToolLife) / tool.maxToolLife, ImVec2(-1, 0));
                 }
                 ImGui::EndTable();
             }
             ImGui::EndTabItem();
         }
 
-        if (ImGui::BeginTabItem("Operations")) {
-            if (ImGui::BeginTable("TableOps", 5, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
-                ImGui::TableSetupColumn("ID"); ImGui::TableSetupColumn("Part"); ImGui::TableSetupColumn("Machine"); ImGui::TableSetupColumn("Qty"); ImGui::TableSetupColumn("Time");
+        if (ImGui::BeginTabItem("Operations"))
+        {
+            if (ImGui::BeginTable("TableOps", 5, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
+            {
+                ImGui::TableSetupColumn("ID");
+                ImGui::TableSetupColumn("Part");
+                ImGui::TableSetupColumn("Machine");
+                ImGui::TableSetupColumn("Qty");
+                ImGui::TableSetupColumn("Time");
                 ImGui::TableHeadersRow();
-                for (const auto& [id, op] : state.operations) {
+                for (const auto& [id, op] : state.operations)
+                {
                     ImGui::TableNextRow();
-                    ImGui::TableSetColumnIndex(0); ImGui::Text("%d", op.id);
-                    ImGui::TableSetColumnIndex(1); ImGui::Text("%d", op.partId);
-                    ImGui::TableSetColumnIndex(2); ImGui::Text("%s", toString(op.requiredMachine).data());
-                    ImGui::TableSetColumnIndex(3); ImGui::Text("%u", op.quantity);
-                    ImGui::TableSetColumnIndex(4); ImGui::Text("%u ms", op.totalTime);
+                    ImGui::TableSetColumnIndex(0);
+                    ImGui::Text("%d", op.id);
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::Text("%d", op.partId);
+                    ImGui::TableSetColumnIndex(2);
+                    ImGui::Text("%s", toString(op.requiredMachine).data());
+                    ImGui::TableSetColumnIndex(3);
+                    ImGui::Text("%u", op.quantity);
+                    ImGui::TableSetColumnIndex(4);
+                    ImGui::Text("%u ms", op.totalTime);
                 }
                 ImGui::EndTable();
             }

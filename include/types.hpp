@@ -61,7 +61,6 @@ using MachineID = int;
 using OperationID = int; // Added this
 
 
-
 struct Tool;
 struct SizeXYZ;
 struct Machine;
@@ -69,13 +68,16 @@ struct Part;
 struct Operation;
 struct Job;
 
-struct SizeXYZ {
-    float X,Y,Z;
+struct SizeXYZ
+{
+    float X, Y, Z;
 };
-struct Job {
+
+struct Job
+{
     JobID Id;
     int jobId;
-    std::map<PartID,uint32_t> parts;
+    std::map<PartID, uint32_t> parts;
     Priority priority;
     std::chrono::system_clock::time_point createdTime;
     std::chrono::system_clock::time_point startedTime;
@@ -84,14 +86,17 @@ struct Job {
     State state = State::pending;
 };
 
-struct Part {
+struct Part
+{
     PartID id;
     std::vector<OperationID> operations;
     SizeXYZ partSize; //in mm
     uint32_t baseMachineTime;
     State state = State::pending;
 };
-struct Operation {
+
+struct Operation
+{
     OperationID id;
     PartID partId;
     uint32_t quantity;
@@ -103,59 +108,70 @@ struct Operation {
     std::set<MachineSpecs> requiredMachineSpces;
     State state = State::pending;
     bool completed = false;
-
 };
-struct Machine {
+
+struct Machine
+{
     MachineID id;
-    std::map<uint16_t,ToolID> tools;
+    std::map<uint16_t, ToolID> tools;
     MachineState status;
     std::queue<OperationID> operations;
     MachineType machineType;
     SizeXYZ workEnvelope;
     std::set<MachineSpecs> machineSpecs;
     MachineSizeClass sizeClass;
-
-
 };
-struct Tool {
+
+struct Tool
+{
     std::string_view name;
     std::unordered_set<MachineType> compatibleMachines;
     uint16_t maxToolLife;
     uint16_t currentToolLife;
     int toolId;
-    bool operator<(const Tool& other) const {
+
+    bool operator<(const Tool& other) const
+    {
         return toolId < other.toolId;
     }
 };
 
-struct ProductionState {
-    std::map<int,Job> jobs;
-    std::map<PartID,Part> parts;
-    std::map<ToolID,Tool> tools;
-    std::map<MachineID,Machine> machines;
+struct ProductionState
+{
+    std::map<int, Job> jobs;
+    std::map<PartID, Part> parts;
+    std::map<ToolID, Tool> tools;
+    std::map<MachineID, Machine> machines;
     std::map<OperationID, Operation> operations;
     int count = 0;
 };
 
-struct MachineRuntime {
+struct MachineRuntime
+{
     std::optional<OperationID> current_op;
     double remaining_time = 0.0;
 };
 
-struct StateSnapshot {
+struct StateSnapshot
+{
     ProductionState productionState;
     std::unordered_map<MachineID, MachineRuntime> runtime;
 };
 
-struct ToolLib {
-    std::map<int,Tool> tools;
+struct ToolLib
+{
+    std::map<int, Tool> tools;
 };
-struct JobGenerationResult {
+
+struct JobGenerationResult
+{
     Job job;
     std::map<PartID, Part> newParts;
     std::map<OperationID, Operation> newOperations;
 };
 
-inline std::vector<std::string_view> toolNames = {"EndMill" , "FaceMill" ,
-    "Ball Nose EndMill", "Drill" , "Reamer" , "Tap" , "Boring Bar" , "ChamferMill" , "ThreadMill" , "Turning Tool",
-    "Grooving Tool" , "Threading tool" , "GunDrill"};
+inline std::vector<std::string_view> toolNames = {
+    "EndMill", "FaceMill",
+    "Ball Nose EndMill", "Drill", "Reamer", "Tap", "Boring Bar", "ChamferMill", "ThreadMill", "Turning Tool",
+    "Grooving Tool", "Threading tool", "GunDrill"
+};
